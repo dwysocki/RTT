@@ -1,4 +1,4 @@
-import socket as sc
+import socket
 
 '''
 s = sc.socket()
@@ -13,6 +13,25 @@ while True:
     client.send(b"Thank you for connecting")
     client.close()
 '''
+
+class StopWaitSocket(socket.socket):
+    def __init__(self, bufsize=1024, **kwargs):
+        self.bufsize = bufsize
+        super(StopWaitSocket, self).__init__(**kwargs)
+
+    def sendmessage(self, msg, **kwargs):
+        totalsent = 0
+        msg_len = len(msg)
+        while totalsent < msg_len:
+            sent = self.send(msg[totalsent:], **kwargs)
+            if sent == 0:
+                raise RuntimeError("socket connection broken")
+            totalsent += sent
+
+    def recvmessage(self, **kwargs):
+        msg = b""
+        while len(msg) < __:
+            pass
 
 class ServerSocket:
     def __init__(self, sock=None, family=sc.AF_INET, type=sc.SOCK_STREAM,
