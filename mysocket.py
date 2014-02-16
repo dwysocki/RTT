@@ -17,7 +17,7 @@ class MySocket(socket.socket):
         # Issue #7995: if no default timeout is set and the listening
         # socket had a (non-zero) timeout, force the new socket in blocking
         # mode to override platform-specific socket flags inheritance.
-        if getdefaulttimeout() is None and self.gettimeout():
+        if socket.getdefaulttimeout() is None and self.gettimeout():
             sock.setblocking(True)
         return sock, addr
         
