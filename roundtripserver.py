@@ -3,7 +3,7 @@ import socket
 import mysocket
 
 def TCP(port):
-    server = mysocket(type=socket.SOCK_STREAM)
+    server = mysocket.MySocket(type=socket.SOCK_STREAM)
 
     host = socket.gethostname()
 
