@@ -11,27 +11,33 @@ port = int(sys.argv[1])
 s.bind((host, port))
 
 s.listen(1)
-while True:
-    client, address = s.accept()
+try:
+    while True:
+        client, address = s.accept()
 
-    try:
-        size_info = client.recv(2) # empty for some reason
-        print(size_info.decode('utf-8') + "<<- message")
-        msgsize, bufsize = map(lambda x: 2**x,
-                               size_info)
+        try:
+            size_info = client.recv(2) # empty for some reason
+            msgsize, bufsize = map(lambda x: 2**x,
+                                   size_info)
 
-        client.send(b'1')
+            print("Receiving {}B message in {}B pieces".format(
+                msgsize, bufsize))
+            
+            client.send(b'1')
         
-        received = 0
-        expected = msgsize
-        recvmsg = b''
+            received = 0
+            expected = msgsize
+            recvmsg = b''
 
-        while received < expected:
-            buffer = client.recv(bufsize)
-            received += len(buffer)
-            recvmsg += buffer
+            while received < expected:
+                buffer = client.recv(bufsize)
+                received += len(buffer)
+                recvmsg += buffer
 
-        client.sendall(recvmsg)
+            client.sendall(recvmsg)
+            print("Message sent")
 
-    finally:
-        client.close()
+        finally:
+            client.close()
+finally:
+    s.close()

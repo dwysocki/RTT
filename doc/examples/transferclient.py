@@ -11,7 +11,7 @@ def makebytes(n):
     return bytes(map(mod256,
                      range(n)))
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     print("usage: transferclient <host> <port> <log2(msgsize)> <log2(bufsize)>")
     sys.exit(1)
 
@@ -41,17 +41,22 @@ except socket.error:
 
 try:
     # send size message
-    s.send(sizemsg)
+    s.sendall(sizemsg)
     # await confirmation
     s.recv(1)
+    
     # send payload
-    s.sendall(msg)
+    sent = 0
+    
+    while sent < msgsize:
+        sent += s.send(msg[sent:sent+bufsize+1])
+
+#    s.sendall(msg)
 
     received = 0
-    expected = msgsize
     recvmsg = b''
 
-    while received < expected:
+    while received < msgsize:
         buffer = s.recv(bufsize)
         received += len(buffer)
         recvmsg += buffer
