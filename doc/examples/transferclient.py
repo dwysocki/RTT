@@ -1,5 +1,6 @@
 import socket
 import sys
+import time
 
 def mod256(x):
     """Finds x modulus 256"""
@@ -47,7 +48,10 @@ try:
     
     # send payload
     sent = 0
-    
+
+    # start timing
+    start_time = time.time()
+        
     while sent < msgsize:
         sent += s.send(msg[sent:sent+bufsize+1])
 
@@ -59,7 +63,10 @@ try:
         received += len(buffer)
         recvmsg += buffer
 
-    print("received message of size " + str(len(recvmsg)))
+    end_time = time.time()
+    
+    print("received message of size {}B in {}s".format(
+        len(recvmsg), end_time-start_time))
 
 finally:
     s.close()

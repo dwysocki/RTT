@@ -1,80 +1,22 @@
-import socket
+import argparse
 
-'''
-s = sc.socket()
-host = ""#sc.gethostname()
-port = 24001
-s.bind((host, port))
+import roundtripserver
 
-s.listen(5)
-while True:
-    client, address = s.accept()
-    print("Got connection.")
-    client.send(b"Thank you for connecting")
-    client.close()
-'''
+parser = argparse.ArgumentParser(description="Launch server.")
+parser.add_argument('mode', metavar='M', choices=['RTT', 'throughput', 'size'],
+                    help='Select mode of operation.')
+parser.add_argument('type', metavar='T', choices=['TCP', 'UDP'],
+                    help='Choose between TCP or UDP for transmissions.')
+parser.add_argument('port', metavar='P', type=int,
+                    help='Set port to use.')
 
-class StopWaitSocket(socket.socket):
-    def __init__(self, bufsize=1024, **kwargs):
-        self.bufsize = bufsize
-        super(StopWaitSocket, self).__init__(**kwargs)
+args = parser.parse_args()
 
-    def sendmessage(self, msg, **kwargs):
-        totalsent = 0
-        msg_len = len(msg)
-        while totalsent < msg_len:
-            sent = self.send(msg[totalsent:], **kwargs)
-            if sent == 0:
-                raise RuntimeError("socket connection broken")
-            totalsent += sent
+choice_map = {'TCP' : {'RTT'        : roundtripserver.TCP,
+                       'throughput' : throughputserver.TCP,
+                       'size'       : sizeserver.TCP},
+              'UDP' : {'RTT'        : roundtripserver.UDP,
+                       'throughput' : throughputserver.UDP,
+                       'size'       : sizeserver.UDP}}
 
-    def recvmessage(self, **kwargs):
-        msg = b""
-        while len(msg) < __:
-            pass
-
-class ServerSocket:
-    def __init__(self, sock=None, family=sc.AF_INET, type=sc.SOCK_STREAM,
-                 msg_len=1024):
-        if sock is None:
-            self.sock = sc.socket(family, type)
-        else:
-            self.sock = sock
-        self.msg_len = msg_len
-
-    def connect(self, host, port):
-        self.sock.connect((host, port))
-
-    def listen(self, n):
-        self.sock.listen(n)
-
-    def send(self, msg):
-        totalsent = 0
-        while totalsent < self.msg_len:
-            sent = self.sock.send(msg[totalsent:])
-            if sent == 0:
-                raise RuntimeError("socket connection broken")
-            totalsent += sent
-
-    def recv(self):
-        msg = b""
-        while len(msg) < self.msg_len:
-            chunk = self.sock.recv(msg_len - len(msg))
-            if chunk == b"":
-                raise RuntimeError("socket connection broken")
-            msg += chunk
-        return msg
-
-
-if __name__ == "__main__":
-    s = ServerSocket()
-    host = ""
-    port = 14400
-    s.connect(host, port)
-    
-    s.listen(5)
-    while True:
-        client, address = s.accept()
-        print("Got connection.")
-        client.send(b"Thank you for connecting")
-        client.close()
+choice_map[args.type][args.mode](args.port)
