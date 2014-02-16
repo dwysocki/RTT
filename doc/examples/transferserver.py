@@ -25,16 +25,17 @@ try:
             
             client.send(b'1')
         
-            received = 0
-            expected = msgsize
-            recvmsg = b''
+            received = sent = 0
+            msg = b''
 
-            while received < expected:
+            while received < msgsize:
                 buffer = client.recv(bufsize)
                 received += len(buffer)
-                recvmsg += buffer
+                msg += buffer
 
-            client.sendall(recvmsg)
+            while sent < msgsize:
+                sent += client.send(msg[sent:sent+bufsize+1])
+
             print("Message sent")
 
         finally:

@@ -51,8 +51,6 @@ try:
     while sent < msgsize:
         sent += s.send(msg[sent:sent+bufsize+1])
 
-#    s.sendall(msg)
-
     received = 0
     recvmsg = b''
 
