@@ -1,6 +1,8 @@
 import argparse
 
 import roundtripserver
+import throughputserver
+import sizeserver
 
 parser = argparse.ArgumentParser(description="Launch server.")
 parser.add_argument('mode', metavar='M', choices=['RTT', 'throughput', 'size'],
