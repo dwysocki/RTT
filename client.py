@@ -28,5 +28,5 @@ choice_map = {'TCP' : {'RTT'        : roundtripclient.TCP,
                        'throughput' : throughputclient.UDP,
                        'size'       : sizeclient.UDP}}
 
-choice_map[args.type][args.mode](args.host, args.port,
-                                 args.msgsize, args.bufsize)
+print(choice_map[args.type][args.mode](args.host, args.port,
+                                       args.msgsize, args.bufsize))
