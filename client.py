@@ -24,7 +24,7 @@ size_sizes = (16, 17, 18, 19, 20)
 
 choice_map = {'TCP' : {'RTT'        : (roundtripclient.TCP, RTT_sizes),
                        'throughput' : (throughputclient.TCP, throughput_sizes),
-                       'size'       : (sizeclient.TCP}, size_sizes)},
+                       'size'       : (sizeclient.TCP, size_sizes)},
               'UDP' : {'RTT'        : (roundtripclient.UDP, RTT_sizes),
                        'throughput' : (throughputclient.UDP, throughput_sizes),
                        'size'       : (sizeclient.UDP, size_sizes)}}
