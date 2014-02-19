@@ -6,13 +6,16 @@ import sizeclient
 from testing import do_tests
 
 parser = argparse.ArgumentParser(description="Launch server.")
-parser.add_argument('mode', metavar='M', choices=['RTT', 'throughput', 'size'],
+parser.add_argument('mode', metavar='MODE',
+                    choices=['RTT', 'throughput', 'size'],
                     help='Select mode of operation.')
-parser.add_argument('type', metavar='T', choices=['TCP', 'UDP'],
+parser.add_argument('type', metavar='TYPE',
+                    choices=['TCP', 'UDP'],
                     help='Choose between TCP or UDP for transmissions.')
-parser.add_argument('host', metavar='H',
+parser.add_argument('host', metavar='HOST',
                     help='Set host to connect to.')
-parser.add_argument('port', metavar='P', type=int,
+parser.add_argument('port', metavar='PORT',
+                    type=int,
                     help='Set port to use.')
 
 
