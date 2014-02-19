@@ -3,6 +3,7 @@ import argparse
 import roundtripclient
 import throughputclient
 import sizeclient
+from testing import do_tests
 
 parser = argparse.ArgumentParser(description="Launch server.")
 parser.add_argument('mode', metavar='M', choices=['RTT', 'throughput', 'size'],
@@ -18,19 +19,22 @@ parser.add_argument('port', metavar='P', type=int,
 
 args = parser.parse_args()
 
-RTT_sizes = (0, 4, 8)
-throughput_sizes = (10, 12, 14, 16, 18, 20)
-size_sizes = (16, 17, 18, 19, 20)
+RTT_sizes = range(0, 10, 4)
+throughput_sizes = range(10, 22, 2)
+size_sizes = range(16, 21)
 
-choice_map = {'TCP' : {'RTT'        : (roundtripclient.TCP, RTT_sizes),
-                       'throughput' : (throughputclient.TCP, throughput_sizes),
-                       'size'       : (sizeclient.TCP, size_sizes)},
-              'UDP' : {'RTT'        : (roundtripclient.UDP, RTT_sizes),
-                       'throughput' : (throughputclient.UDP, throughput_sizes),
-                       'size'       : (sizeclient.UDP, size_sizes)}}
+choice_map = {'TCP' : {'RTT'        : (roundtripclient.test_TCP,
+                                       RTT_sizes),
+                       'throughput' : (throughputclient.test_TCP,
+                                       throughput_sizes),
+                       'size'       : (sizeclient.test_TCP,
+                                       size_sizes)},
+              'UDP' : {'RTT'        : (roundtripclient.test_UDP,
+                                       RTT_sizes),
+                       'throughput' : (throughputclient.test_UDP,
+                                       throughput_sizes),
+                       'size'       : (sizeclient.test_UDP,
+                                       size_sizes)}}
 
-func, lst = choice_map[args.type][args.mode]
-for n in lst:
-    size = 2**n
-    print("2^{}B in {}s".format(n, func(args.host, args.port,
-                                        size, size)))
+func, iter = choice_map[args.type][args.mode]
+print(do_tests(func, args.host, args.port, iter))

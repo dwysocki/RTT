@@ -16,7 +16,7 @@ try:
         client, address = s.accept()
 
         try:
-            size_info = client.recv(2) # empty for some reason
+            size_info = client.recv(2)
             msgsize, bufsize = map(lambda x: 2**x,
                                    size_info)
 
