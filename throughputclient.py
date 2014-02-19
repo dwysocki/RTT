@@ -1,4 +1,5 @@
 import socket
+import sys
 
 import mysocket
 import utils
@@ -29,6 +30,8 @@ def TCP(host, port, msgsize, bufsize):
         # send message
         server.sendby(msg, msgsize, bufsize)
         # receive time in ms
+        print(server.recv(16))
+        sys.exit(0)
         uptime = int(server.recv(16).decode('utf-8')) # decoding wrong dunno why
         # confirm ready to receive
         server.send(b'1')
