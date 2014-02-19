@@ -60,6 +60,6 @@ class MySocket(socket.socket):
 
         endTime = time.time()
 
-        timeElapsed = 1000 * (endTime - startTime)
+        timeElapsed = int(1000 * (endTime - startTime))
         return msg, timeElapsed
             
