@@ -3,5 +3,4 @@ def do_tests(test, host, port, iter):
     iter. test must be a function with arguments (host, port, x), where x
     will be given the item from iter.
     """
-    test = lambda x: test(host, port, x)
-    return {x : test(x) for x in iter}
+    return {x : test(host, port, x) for x in iter}

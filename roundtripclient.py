@@ -5,10 +5,11 @@ import mysocket
 import utils
 
 def TCP(host, port, msgsize, bufsize):
-    """Measures round-trip time (RTT) in seconds over TCP to host:port for a
+    """Measures round-trip time (RTT) in ms over TCP to host:port for a
     message of size 2**msgsize bytes in chunks of size 2**bufsize bytes.
 
-    Returns None if there are any errors."""
+    Returns the time as an integer measured in milliseconds.
+    Returns nothing if there are any errors."""
     server = mysocket.MySocket(type=socket.SOCK_STREAM)
 
     sizemsg = (chr(msgsize) + chr(bufsize)).encode()
@@ -21,7 +22,7 @@ def TCP(host, port, msgsize, bufsize):
         server.connect((host, port))
 
     except socket.error:
-        return None
+        return
 
     try:
         # inform server of msgsize and bufsize
@@ -34,8 +35,12 @@ def TCP(host, port, msgsize, bufsize):
         recvmsg = server.recvby(msgsize, bufsize)
         end_time = time.time()
 
-        return end_time - start_time
+        # message was corrupted
+        if msg != recvmsg:
+            return
         
+        return int(1000 * (end_time - start_time))
+
     finally:
         server.close()
 
