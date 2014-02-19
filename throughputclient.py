@@ -1,6 +1,7 @@
 import socket
 
 import mysocket
+import utils
 
 def TCP(host, port, msgsize, bufsize):
     """Test throughput in kbps for uploading and downloading a message of size
@@ -28,7 +29,7 @@ def TCP(host, port, msgsize, bufsize):
         # send message
         server.sendby(msg, msgsize, bufsize)
         # receive time in ms
-        uptime = int(server.recv(16).decode('utf-8'))
+        uptime = int(server.recv(16).decode('utf-8')) # decoding wrong dunno why
         # confirm ready to receive
         server.send(b'1')
         # receive message and record throughput
