@@ -37,13 +37,13 @@ def TCP(host, port, msgsize, bufsize):
         recvmsg, downtime = server.throughput(msgsize, bufsize)
 
         # message was corrupted
-        if msg != recvmsg:
-            return
-        
+#        if msg != recvmsg:
+#            return
+
         # the bitrate is 8 times the size of the message in bytes over the
         # time elapsed
-        uprate = 8*msgsize/uptime if uptime is not 0 else None
-        downrate = 8*msgsize/downtime if downtime is not 0 else None
+        uprate = 8*msgsize/uptime #if uptime is not 0 else None
+        downrate = 8*msgsize/downtime #if downtime is not 0 else None
 
         return uprate, downrate
 
@@ -52,7 +52,7 @@ def TCP(host, port, msgsize, bufsize):
 
 def test_TCP(host, port, size):
     return TCP(host, port, size, size)
-    
+
 def UDP(host, port, msgsize, bufsize):
     print("UDP throughput client not yet implemented")
 

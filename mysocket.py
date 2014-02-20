@@ -21,14 +21,29 @@ class MySocket(socket.socket):
         if socket.getdefaulttimeout() is None and self.gettimeout():
             sock.setblocking(True)
         return sock, addr
+
+    def echo(self, msg, msgsize, bufsize):
+        """Sends a message and then waits for an echo, returning the time and
+        received message. Assumes that host will echo the message.
+        """
+        start_time = self.sendby(msg, msgsize, bufsize)
+        msg = self.recvby(msgsize, bufsize)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
         
+        return msg, elapsed_time
+    
     def sendby(self, msg, msgsize, bufsize):
         """Sends an entire message in chunks of size bufsize"""
         bufsize += 1 # account for string slicing being end-exclusive
         sent = 0
+
+        start_time = time.time()
         
         while sent < msgsize:
             sent += self.send(msg[sent:sent+bufsize])
+
+        return start_time
 
     def recvby(self, msgsize, bufsize):
         """Receives an entire message in chunks of size bufsize"""

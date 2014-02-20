@@ -28,7 +28,7 @@ def TCP(port):
                 # receive message while recording throughput
                 msg, time = client.throughput(msgsize, bufsize)
                 # send client the time elapsed
-                client.sendall(str(time).encode('utf-8'))
+                client.sendall(bytes(str(time), 'utf-8'))
 
                 # wait for ACK
                 client.recv(1)

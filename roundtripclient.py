@@ -30,15 +30,16 @@ def TCP(host, port, msgsize, bufsize):
         # await confirmation before sending message
         server.recv(1)
         # start timer
-        start_time = time.time()
+#        start_time = time.time()
         # send message
-        server.sendby(msg, msgsize, bufsize)
+#        server.sendby(msg, msgsize, bufsize)
         # receive echoed message
-        recvmsg = server.recvby(msgsize, bufsize)
+#        recvmsg = server.recvby(msgsize, bufsize)
         # end timer
-        end_time = time.time()
-        # calculate time elapsed
-        elapsed_time = end_time - start_time
+#        end_time = time.time()
+
+        # echo message and find time
+        recvmsg, elapsed_time = server.echo(msg, msgsize, bufsize)
 
         # message was corrupted
         if msg != recvmsg:
