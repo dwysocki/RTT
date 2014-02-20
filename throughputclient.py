@@ -30,16 +30,11 @@ def TCP(host, port, msgsize, bufsize):
         # send message
         server.sendby(msg, msgsize, bufsize)
         # receive time in ms
-        print(server.recv(16).decode('utf-8'))
-        sys.exit(0)
-        uptime = int(server.recv(16).decode('utf-8')) # decoding wrong dunno why
+        uptime = float(server.recv(16).decode('utf-8'))
         # confirm ready to receive
         server.send(b'1')
         # receive message and record throughput
         recvmsg, downtime = server.throughput(msgsize, bufsize)
-
-        ## check that messages are identical (uncorrupted) ##
-        ## do this in RTT as well ##
 
         # message was corrupted
         if msg != recvmsg:
@@ -47,7 +42,9 @@ def TCP(host, port, msgsize, bufsize):
         
         # the bitrate is 8 times the size of the message in bytes over the
         # time elapsed
-        uprate, downrate = 8*msgsize/uptime, 8*msgsize/downtime
+        uprate = 8*msgsize/uptime if uptime is not 0 else None
+        downrate = 8*msgsize/downtime if downtime is not 0 else None
+
         return uprate, downrate
 
     finally:

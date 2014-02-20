@@ -44,11 +44,12 @@ class MySocket(socket.socket):
 
     def throughput(self, msgsize, bufsize):
         """Receives an entire message in chunks of size bufsize. Returns
-        both the message and the time elapsed in ms."""
+        both the message and the time elapsed in us."""
         received = 0
         msg = b''
 
         buffer = self.recv(bufsize)
+        # start the timer
         startTime = time.time()
         received += len(buffer)
         msg += buffer
@@ -57,9 +58,9 @@ class MySocket(socket.socket):
             buffer = self.recv(bufsize)
             received += len(buffer)
             msg += buffer
-
+        # end the timer
         endTime = time.time()
 
-        timeElapsed = int(1000 * (endTime - startTime))
+        timeElapsed = endTime - startTime
         return msg, timeElapsed
             

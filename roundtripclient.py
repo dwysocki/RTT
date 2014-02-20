@@ -29,17 +29,22 @@ def TCP(host, port, msgsize, bufsize):
         server.sendall(sizemsg)
         # await confirmation before sending message
         server.recv(1)
-
+        # start timer
         start_time = time.time()
+        # send message
         server.sendby(msg, msgsize, bufsize)
+        # receive echoed message
         recvmsg = server.recvby(msgsize, bufsize)
+        # end timer
         end_time = time.time()
+        # calculate time elapsed
+        elapsed_time = end_time - start_time
 
         # message was corrupted
         if msg != recvmsg:
             return
         
-        return int(1000 * (end_time - start_time))
+        return elapsed_time
 
     finally:
         server.close()
@@ -48,6 +53,9 @@ def test_TCP(host, port, size):
     return TCP(host, port, size, size)
         
 def UDP(host, port, msgsize, bufsize):
+    """Look here
+    <http://www.binarytides.com/programming-udp-sockets-in-python/>
+    """
     print("UDP RTT client not yet implemented")
 
 def test_UDP(host, port, size):
