@@ -28,6 +28,7 @@ all times by 1000.
 
 ## Throughput
 
+### Attempt 1
 - test upload and download throughput from client's perspective
   - does all of this in a single function call, returning (uptime, downtime)
 - begin by testing upload rate
@@ -44,3 +45,12 @@ all times by 1000.
   - client does exactly as the server did before, recording the time of the
     first and last message
   - client function returns (uptime, downtime) in ms
+
+### Attempt 2
+- measure RTT before throughput measurements begin
+- begin sending multiple packets
+- have the receiver record the time the first packet is received
+- record the time the last packet is received
+- measure the size of all but the first packet (`S`)
+- `transfer_time` is `end_time - start_time + RTT/2`
+- `throughput` is `S/transfer_time`

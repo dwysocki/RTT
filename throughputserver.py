@@ -3,7 +3,6 @@ import socket
 import mysocket
 
 def TCP(port):
-#    print("TCP throughput server not yet implemented")
     server = mysocket.MySocket(type=socket.SOCK_STREAM)
 
     host = socket.gethostname()
