@@ -46,4 +46,11 @@ elif side == 'client':
         return
 
     try:
+        start_time = time.time()
         server.send(msg)
+        ACK = server.recv(1)
+        end_time = time.time()
+        print("ACK? {}".format(ACK))
+        print("t = {}".format(end_time-start_time))
+    finally:
+        server.close()
