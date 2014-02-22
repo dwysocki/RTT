@@ -1,5 +1,6 @@
 import time
 import sys
+import select
 import socket
 
 side = sys.argv[1]
@@ -15,7 +16,11 @@ if side == 'server':
         server.listen(1)
     
         while True:
-            client, address = server.accept()
+            reads, writes, errs = select.select([server], [], [])
+            if server in reads:
+                client, address = server.accept()
+            else:
+                continue
             msg = ''
             
             try:
