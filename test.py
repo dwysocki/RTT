@@ -8,7 +8,8 @@ port = int(sys.argv[2])
 if side == 'server':
     server = socket.socket()
     host = socket.gethostname()
-
+    server.bind((host, port))
+    
     try:
         server.listen(1)
     
