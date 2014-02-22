@@ -3,7 +3,7 @@ import sys
 import socket
 
 side = sys.argv[1]
-port = sys.argv[2]
+port = int(sys.argv[2])
 
 if side == 'server':
     server = socket.socket()
