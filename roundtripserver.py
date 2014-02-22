@@ -29,6 +29,7 @@ def TCP(port):
 
             finally:
                 client.close()
+
     finally:
         server.close()
 

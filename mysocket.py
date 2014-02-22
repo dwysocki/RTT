@@ -1,3 +1,4 @@
+
 import socket
 import time
 
@@ -22,6 +23,21 @@ class MySocket(socket.socket):
             sock.setblocking(True)
         return sock, addr
 
+    def roundtrip(self, is_server, *args, **kwargs):
+        return (self._roundtrip_server(*args, **kwargs) if is_server else
+                self._roundtrip_client(*args, **kwargs))
+
+    def _roundtrip_server(self, type='TCP', *args, **kwargs):
+        if type == 'TCP':
+            self._roundtrip_server_tcp(*args, **kwargs)
+        elif type == 'UDP':
+            return self._roundtrip_server_udp(*args, **kwargs)
+        else:
+            raise ValueError("type {} not implemented".format(type))
+
+    def _roundtrip_server_tcp(self, port, verbose=False):
+        
+        
     def echo(self, msg, msgsize, bufsize):
         """Sends a message and then waits for an echo, returning the time and
         received message. Assumes that host will echo the message.
