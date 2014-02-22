@@ -9,6 +9,7 @@ if side == 'server':
     server = socket.socket()
     host = socket.gethostname()
     server.bind((host, port))
+    server.setblocking(0)
     
     try:
         server.listen(1)
@@ -42,9 +43,11 @@ elif side == 'client':
     msg = bytes(range(32))
 
     server.connect((host, port))
-
+    
     try:
         start_time = time.time()
+        print(start_time)
+        time.sleep(5)
         server.send(msg)
         ACK = server.recv(1)
         end_time = time.time()
