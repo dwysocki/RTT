@@ -40,10 +40,7 @@ elif side == 'client':
 
     msg = bytes(range(32))
 
-    try:
-        server.connect((host, port))
-    except socket.error:
-        return
+    server.connect((host, port))
 
     try:
         start_time = time.time()
