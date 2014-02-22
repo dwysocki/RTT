@@ -24,7 +24,8 @@ if side == 'server':
             msg = ''
             
             try:
-                while msg == '':
+                reads, writes, errs = select.select([], [client], [])
+                while client in writes:
                     start_time = time.time()
                     print("t: {}".format(start_time))
 
@@ -32,6 +33,7 @@ if side == 'server':
                     print("m: {}".format(msg))
 
                     client.send(b'1')
+                    reads, writes, errs = select.select([], [client], [])
 
             finally:
                 end_time = time.time()
