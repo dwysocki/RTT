@@ -97,9 +97,9 @@ class serversocket(mysocket):
                     elif mode == MODE_ROUNDTRIP:
                         _roundtrip_tcp(client, options[0], *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
-                        _throughput_tcp(client, *options, *args, **kwargs)
+                        _throughput_tcp(client, *(options + args), **kwargs)
                     elif mode == MODE_SIZES:
-                        _sizes_tcp(client, *options, *args, **kwargs)
+                        _sizes_tcp(client, *(options + args), **kwargs)
                     else:
                         client.send(NACK)
                         print("mode not implemented")
