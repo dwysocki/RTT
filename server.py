@@ -1,6 +1,7 @@
 import argparse
 
 import mysocket
+import utils
 
 parser = argparse.ArgumentParser(description="Launch server.")
 parser.add_argument('type', metavar='TYPE',
