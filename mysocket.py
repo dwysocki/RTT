@@ -3,6 +3,11 @@ import socket
 import time
 
 class MySocket(socket.socket):
+    __roundtrip_map = {'server' : {'TCP' : self._roundtrip_server_tcp,
+                                   'UDP' : self._roundtrip_server_udp},
+                       'client' : {'TCP' : self._roundtrip_client_tcp,
+                                   'UDP' : self._roundtrip_client_udp}}
+    
     def __init__(self, **kwargs):
         super(MySocket, self).__init__(**kwargs)
 
@@ -23,7 +28,8 @@ class MySocket(socket.socket):
             sock.setblocking(True)
         return sock, addr
 
-    def roundtrip(self, is_server, *args, **kwargs):
+    def roundtrip(self, is_server, type='TCP', *args, **kwargs):
+        return __roundtrip_map
         return (self._roundtrip_server(*args, **kwargs) if is_server else
                 self._roundtrip_client(*args, **kwargs))
 
@@ -36,7 +42,7 @@ class MySocket(socket.socket):
             raise ValueError("type {} not implemented".format(type))
 
     def _roundtrip_server_tcp(self, port, verbose=False):
-        
+        pass        
         
     def echo(self, msg, msgsize, bufsize):
         """Sends a message and then waits for an echo, returning the time and
