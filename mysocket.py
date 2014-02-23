@@ -6,7 +6,7 @@ NACK, ACK = range(2)
 
 class mysocket(socket.socket):
     def __init__(self, port=8888, *args, **kwargs):
-        super(MySocket, self).__init__(*args, **kwargs)
+        super(mysocket, self).__init__(*args, **kwargs)
 
     def echo(self, msg, msgsize, bufsize):
         """Sends a message and then waits for an echo, returning the time and
