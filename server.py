@@ -13,6 +13,6 @@ parser.add_argument('port', metavar='PORT',
 
 args = parser.parse_args()
 
-server = mysocket.serversocket(type=utils.type_map[type],
+server = mysocket.serversocket(type=utils.type_map[args.type],
                                port=args.port)
 server.activate()
