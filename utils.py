@@ -1,3 +1,5 @@
+import socket
+
 def mod256(x):
     """Finds x modulus 256"""
     return x % 256
