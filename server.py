@@ -12,6 +12,6 @@ parser.add_argument('port', metavar='PORT',
 
 args = parser.parse_args()
 
-type = socket.SOCK_STREAM if args.type == 'TCP' else socket.SOCK_DGRAM
-server = mysocket.serversocket(type=type, port=args.port)
+server = mysocket.serversocket(type=utils.type_map[type],
+                               port=args.port)
 server.activate()
