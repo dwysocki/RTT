@@ -78,7 +78,7 @@ class serversocket(mysocket):
 
     def _tcp_loop(self, *args, **kwargs):
         try:
-            server.listen(1)
+            self.listen(1)
 
             while True:
                 client, address = self.accept()
