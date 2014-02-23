@@ -1,13 +1,8 @@
 import argparse
 
-import roundtripserver
-import throughputserver
-import sizeserver
+import mysocket
 
 parser = argparse.ArgumentParser(description="Launch server.")
-parser.add_argument('mode', metavar='MODE',
-                    choices=['RTT', 'throughput', 'size'],
-                    help='Select mode of operation.')
 parser.add_argument('type', metavar='TYPE',
                     choices=['TCP', 'UDP'],
                     help='Choose between TCP or UDP for transmissions.')
@@ -17,11 +12,6 @@ parser.add_argument('port', metavar='PORT',
 
 args = parser.parse_args()
 
-choice_map = {'TCP' : {'RTT'        : roundtripserver.TCP,
-                       'throughput' : throughputserver.TCP,
-                       'size'       : sizeserver.TCP},
-              'UDP' : {'RTT'        : roundtripserver.UDP,
-                       'throughput' : throughputserver.UDP,
-                       'size'       : sizeserver.UDP}}
-
-choice_map[args.type][args.mode](args.port)
+type = socket.SOCK_STREAM if args.type == 'TCP' else socket.SOCK_DGRAM
+server = mysocket.serversocket(type=type, port=args.port)
+server.activate()

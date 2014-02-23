@@ -1,49 +1,13 @@
-
 import socket
 import time
 
-class MySocket(socket.socket):
-    __roundtrip_map = {'server' : {'TCP' : self._roundtrip_server_tcp,
-                                   'UDP' : self._roundtrip_server_udp},
-                       'client' : {'TCP' : self._roundtrip_client_tcp,
-                                   'UDP' : self._roundtrip_client_udp}}
-    
-    def __init__(self, **kwargs):
-        super(MySocket, self).__init__(**kwargs)
+MODE_QUIT, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(4)
+NACK, ACK = range(1)
 
-    def accept(self):
-        """accept() -> (socket object, address info)
+class mysocket(socket.socket):
+    def __init__(self, port=8888, *args, **kwargs):
+        super(MySocket, self).__init__(*args, **kwargs)
 
-        Wait for an incoming connection.  Return a new socket
-        representing the connection, and the address of the client.
-        For IP sockets, the address info is a pair (hostaddr, port).
-        """
-        fd, addr = self._accept()
-        sock = MySocket(family=self.family, type=self.type,
-                        proto=self.proto, fileno=fd)
-        # Issue #7995: if no default timeout is set and the listening
-        # socket had a (non-zero) timeout, force the new socket in blocking
-        # mode to override platform-specific socket flags inheritance.
-        if socket.getdefaulttimeout() is None and self.gettimeout():
-            sock.setblocking(True)
-        return sock, addr
-
-    def roundtrip(self, is_server, type='TCP', *args, **kwargs):
-        return __roundtrip_map
-        return (self._roundtrip_server(*args, **kwargs) if is_server else
-                self._roundtrip_client(*args, **kwargs))
-
-    def _roundtrip_server(self, type='TCP', *args, **kwargs):
-        if type == 'TCP':
-            self._roundtrip_server_tcp(*args, **kwargs)
-        elif type == 'UDP':
-            return self._roundtrip_server_udp(*args, **kwargs)
-        else:
-            raise ValueError("type {} not implemented".format(type))
-
-    def _roundtrip_server_tcp(self, port, verbose=False):
-        pass        
-        
     def echo(self, msg, msgsize, bufsize):
         """Sends a message and then waits for an echo, returning the time and
         received message. Assumes that host will echo the message.
@@ -78,26 +42,170 @@ class MySocket(socket.socket):
             msg += buffer
 
         return msg
-
-    def throughput(self, msgsize, bufsize):
-        """Receives an entire message in chunks of size bufsize. Returns
-        both the message and the time elapsed in us."""
-        received = 0
-        msg = b''
-
-        buffer = self.recv(bufsize)
-        # start the timer
-        startTime = time.time()
-        received += len(buffer)
-        msg += buffer
-
-        while received < msgsize:
-            buffer = self.recv(bufsize)
-            received += len(buffer)
-            msg += buffer
-        # end the timer
-        endTime = time.time()
-
-        timeElapsed = endTime - startTime
-        return msg, timeElapsed
             
+class serversocket(mysocket):
+    def __init__(self, *args, **kwargs):
+        super(serversocket, self).__init__(*args, **kwargs)
+        self.host = socket.gethostname()
+        self.bind((self.host, self.port))
+
+    def accept(self):
+        """accept() -> (socket object, address info)
+
+        Wait for an incoming connection.  Return a new socket
+        representing the connection, and the address of the client.
+        For IP sockets, the address info is a pair (hostaddr, port).
+        """
+        fd, addr = self._accept()
+        sock = serversocket(family=self.family, type=self.type,
+                            proto=self.proto, fileno=fd)
+        # Issue #7995: if no default timeout is set and the listening
+        # socket had a (non-zero) timeout, force the new socket in blocking
+        # mode to override platform-specific socket flags inheritance.
+        if serversocket.getdefaulttimeout() is None and self.gettimeout():
+            sock.setblocking(True)
+        return sock, addr
+
+    def activate(self, *args, **kwargs):
+        if self.type == socket.SOCK_STREAM:
+            return _tcp_loop(*args, **kwargs)
+        elif self.type == socket.SOCK_DGRAM:
+            return _udp_loop(*args, **kwargs)
+        else:
+            raise ValueError("type {} serversocket not implemented".format(
+                self.type))
+
+    def _tcp_loop(self, *args, **kwargs):
+        try:
+            server.listen(1)
+
+            while True:
+                client, address = self.accept()
+
+                try:
+                    # receive 3-byte command message from client.
+                    # first byte selects the mode, the other two are
+                    # mode-specific options, to be parsed by that mode's
+                    # function
+                    commands = client.recvby(3, 3)
+                    mode, options = commands[0], commands[1:]
+
+                    if mode == MODE_QUIT:
+                        print("Ending server")
+                        # the two finally blocks will close all sockets
+                        return
+                    elif mode == MODE_ROUNDTRIP:
+                        _roundtrip_tcp(client, options[0], *args, **kwargs)
+                    elif mode == MODE_THROUGHPUT:
+                        _throughput_tcp(client, *options, *args, **kwargs)
+                    elif mode == MODE_SIZES:
+                        _sizes_tcp(client, *options, *args, **kwargs)
+                    else:
+                        client.send(NACK)
+                        print("mode not implemented")
+                finally:
+                    client.close()
+        finally:
+            self.close()
+
+    def _udp_loop(self, *args, **kwargs):
+        print("UDP not yet implemented")
+
+    def _roundtrip_tcp(self, client, msgsize, *args, **kwargs):
+        msgsize = 2**msgsize
+        client.send(ACK)
+
+        # receive message
+        msg = client.recvby(msgsize, msgsize)
+        # send message back
+        client.sendby(msg, msgsize, msgsize)
+
+    def _roundtrip_udp(self, client, msgsize, *args, **kwargs):
+        msgsize = 2**msgsize
+
+    def _throughput_tcp(self, client, msgsize, n, *args, **kwargs):
+        pass
+
+    def _throughput_udp(self, client, msgsize, n, *args, **kwargs):
+        pass
+    
+    def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
+        msgsize = 2**msgsize
+
+
+class clientsocket(mysocket):
+    def __init__(self, host='', *args, **kwargs):
+        super(serversocket, self).__init__(*args, **kwargs)
+        self.host = host
+        self.connect((self.host, self.port))
+
+    def roundtrip(self, msgsize, *args, **kwargs):
+        self.sendall(bytes([MODE_ROUNDTRIP, msgsize]))
+        if self.recv(1) is NACK:
+            return
+
+        msgsize = 2**msgsize
+
+        if self.type == socket.SOCK_STREAM:
+            return self._roundtrip_tcp(msgsize, *args, **kwargs)
+        elif self.type == socket.SOCK_DGRAM:
+            return self._roundtrip_udp(msgsize, *args, **kwargs)
+        else:
+            raise ValueError("type {} not supported".format(self.type))
+
+    def throughput(self, msgsize, n, *args, **kwargs):
+        self.sendall(bytes([MODE_THROUGHPUT, msgsize, n]))
+        if self.recv(1) is NACK:
+            return
+
+        msgsize = 2**msgsize
+        n = 2**n
+        
+        if self.type == socket.SOCK_STREAM:
+            return self._throughput_tcp(msgsize, n, *args, **kwargs)
+        elif self.type == socket.SOCK_DGRAM:
+            return self._throughput_udp(msgsize, n, *args, **kwargs)
+        else:
+            raise ValueError("type {} not supported".format(self.type))
+
+    def sizes(self, msgsize, n, *args, **kwargs):
+        self.sendall(bytes([MODE_THROUGHPUT, msgsize, n]))
+        if self.recv(1) is NACK:
+            return
+
+        msgsize = 2**msgsize
+        n = 2**n
+        
+        if self.type == socket.SOCK_STREAM:
+            return self._sizes_tcp(msgsize, n, *args, **kwargs)
+        else:
+            raise ValueError("type {} not supported".format(self.type))
+    
+    def _roundtrip_tcp(self, msgsize, *args, **kwargs):
+        msg = utils.makebytes(msgsize)
+        
+        start_time = time.time()
+
+        self.sendall(msg)
+        recvmsg = self.recvby(msgsize, msgsize)
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
+        # check for corruption here? #
+        
+        return elapsed_time
+        
+
+    def _roundtrip_udp(self, *args, **kwargs):
+        command = bytes([MODE_ROUNDTRIP, msgsize])
+
+    def _throughput_tcp(self, *args, **kwargs):
+        command = bytes([MODE_THROUGHPUT, msgsize, n])
+
+    def _throughput_udp(self, *args, **kwargs):
+        command = bytes([MODE_THROUGHPUT, msgsize, n])
+
+    def _sizes_tcp(self, *args, **kwargs):
+        command = bytes([MODE_SIZES, msgsize, n])
+

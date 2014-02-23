@@ -7,3 +7,6 @@ def makebytes(n):
     of the last, modulo 256"""
     return bytes(map(mod256,
                      range(n)))
+
+type_map = {'TCP' : socket.SOCK_STREAM,
+            'UDP' : socket.SOCK_DGRAM}

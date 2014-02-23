@@ -1,13 +1,10 @@
 import argparse
 
-import roundtripclient
-import throughputclient
-import sizeclient
-from testing import do_tests
+import testing
 
 parser = argparse.ArgumentParser(description="Launch server.")
 parser.add_argument('mode', metavar='MODE',
-                    choices=['RTT', 'throughput', 'size'],
+                    choices=['roundtrip', 'throughput', 'sizes'],
                     help='Select mode of operation.')
 parser.add_argument('type', metavar='TYPE',
                     choices=['TCP', 'UDP'],
@@ -19,25 +16,15 @@ parser.add_argument('port', metavar='PORT',
                     help='Set port to use.')
 
 
-
 args = parser.parse_args()
 
-RTT_sizes = range(0, 10, 4)
-throughput_sizes = range(10, 22, 2)
-size_sizes = range(16, 21)
+roundtrip_msgsizes = range(0, 10, 4)
+throughput_msgsizes = range(10, 22, 2)
+size_msgsizes = range(16, 21)
 
-choice_map = {'TCP' : {'RTT'        : (roundtripclient.test_TCP,
-                                       RTT_sizes),
-                       'throughput' : (throughputclient.test_TCP,
-                                       throughput_sizes),
-                       'size'       : (sizeclient.test_TCP,
-                                       size_sizes)},
-              'UDP' : {'RTT'        : (roundtripclient.test_UDP,
-                                       RTT_sizes),
-                       'throughput' : (throughputclient.test_UDP,
-                                       throughput_sizes),
-                       'size'       : (sizeclient.test_UDP,
-                                       size_sizes)}}
-
-func, iter = choice_map[args.type][args.mode]
-print(do_tests(func, args.host, args.port, iter))
+if args.mode == 'roundtrip':
+    testing.roundtrip(roundtrip_msgsizes, **args)
+elif args.mode == 'throughput':
+    testing.throughput(throughput_msgsizes, **args)
+else:
+    testing.sizes(sizes_msgsizes, **args)
