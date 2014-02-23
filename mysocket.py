@@ -69,9 +69,9 @@ class serversocket(mysocket):
 
     def activate(self, *args, **kwargs):
         if self.type == socket.SOCK_STREAM:
-            return _tcp_loop(*args, **kwargs)
+            return self._tcp_loop(*args, **kwargs)
         elif self.type == socket.SOCK_DGRAM:
-            return _udp_loop(*args, **kwargs)
+            return self._udp_loop(*args, **kwargs)
         else:
             raise ValueError("type {} serversocket not implemented".format(
                 self.type))
@@ -96,11 +96,12 @@ class serversocket(mysocket):
                         # the two finally blocks will close all sockets
                         return
                     elif mode == MODE_ROUNDTRIP:
-                        _roundtrip_tcp(client, options[0], *args, **kwargs)
+                        self._roundtrip_tcp(client, options[0], *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
-                        _throughput_tcp(client, *(options + args), **kwargs)
+                        self._throughput_tcp(client,
+                                             *(options + args), **kwargs)
                     elif mode == MODE_SIZES:
-                        _sizes_tcp(client, *(options + args), **kwargs)
+                        self._sizes_tcp(client, *(options + args), **kwargs)
                     else:
                         client.send(NACK)
                         print("mode not implemented")
