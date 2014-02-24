@@ -13,7 +13,8 @@ def bar_chart(data, labels,
     # 2d array, we would have to transpose it for it to unpack properly
     # either do as a numpy array, or find some way to do it with itertools.
     # I tried just using zip on it, but that didn't work
-    means, stds, mins, maxs = (utils.summary(d) for d in data)
+    means, stds, mins, maxs = numpy.transpose(numpy.vstack(
+        tuple(utils.summary(d) for d in data))
     
     # # there's probably a way to do this much better with zip
     # means = ymul*np.fromiter((data[k]["mean"] for k in keys), np.float)

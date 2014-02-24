@@ -1,3 +1,4 @@
+import numpy
 import socket
 
 def mod256(x):
@@ -28,7 +29,7 @@ def summary(x):
     """Returns a tuple containing the mean, std, min, and max of the input
     list.
     """
-    return mean(x), std(x), min(x), max(x)
+    return numpy.array([mean(x), std(x), min(x), max(x)])
 
 type_map = {'TCP' : socket.SOCK_STREAM,
             'UDP' : socket.SOCK_DGRAM}
