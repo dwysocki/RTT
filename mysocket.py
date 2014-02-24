@@ -106,7 +106,7 @@ class serversocket(mysocket):
                     elif mode == MODE_SIZES:
                         self._sizes_tcp(client, *(options + args), **kwargs)
                     else:
-                        client.send(NACK)
+                        client.send(bytes([NACK]))
                         print("mode not implemented")
                 finally:
                     client.close()
@@ -118,7 +118,7 @@ class serversocket(mysocket):
 
     def _roundtrip_tcp(self, client, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
-        client.send(ACK)
+        client.send(bytes([ACK]))
 
         # receive message
         msg = client.recvby(msgsize, msgsize)
@@ -145,7 +145,7 @@ class clientsocket(mysocket):
         self.connect((self.host, self.port))
 
     def roundtrip(self, msgsize, *args, **kwargs):
-        self.sendall(bytes([MODE_ROUNDTRIP, msgsize]))
+        self.sendall(bytes([MODE_ROUNDTRIP, msgsize, 0]))
         if self.recv(1) is NACK:
             return
 
