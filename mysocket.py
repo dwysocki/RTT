@@ -1,6 +1,8 @@
 import socket
 import time
 
+import utils
+
 MODE_QUIT, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(4)
 NACK, ACK = range(2)
 
@@ -48,7 +50,6 @@ class serversocket(mysocket):
     def __init__(self, *args, **kwargs):
         super(serversocket, self).__init__(*args, **kwargs)
         self.host = socket.gethostname()
-        self.bind((self.host, self.port))
 
     def accept(self):
         """accept() -> (socket object, address info)
@@ -68,6 +69,7 @@ class serversocket(mysocket):
         return sock, addr
 
     def activate(self, *args, **kwargs):
+        self.bind((self.host, self.port))
         if self.type == socket.SOCK_STREAM:
             return self._tcp_loop(*args, **kwargs)
         elif self.type == socket.SOCK_DGRAM:
@@ -137,7 +139,7 @@ class serversocket(mysocket):
 
 class clientsocket(mysocket):
     def __init__(self, host='', *args, **kwargs):
-        super(serversocket, self).__init__(*args, **kwargs)
+        super(clientsocket, self).__init__(*args, **kwargs)
         self.host = host
         self.connect((self.host, self.port))
 

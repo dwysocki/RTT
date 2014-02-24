@@ -23,8 +23,8 @@ throughput_msgsizes = range(10, 22, 2)
 size_msgsizes = range(16, 21)
 
 if args.mode == 'roundtrip':
-    testing.roundtrip(roundtrip_msgsizes, **args)
+    testing.roundtrip(roundtrip_msgsizes, **args.__dict__)
 elif args.mode == 'throughput':
-    testing.throughput(throughput_msgsizes, **args)
+    testing.throughput(throughput_msgsizes, **args.__dict__)
 else:
-    testing.sizes(sizes_msgsizes, **args)
+    testing.sizes(sizes_msgsizes, **args.__dict__)
