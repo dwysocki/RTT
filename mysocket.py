@@ -84,6 +84,7 @@ class serversocket(mysocket):
 
             while True:
                 client, address = self.accept()
+                print("connected to {}".format(address))
 
                 try:
                     # receive 3-byte command message from client.
