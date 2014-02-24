@@ -1,5 +1,6 @@
 import argparse
 
+import plot
 import testing
 
 parser = argparse.ArgumentParser(description="Launch server.")
@@ -15,7 +16,6 @@ parser.add_argument('port', metavar='PORT',
                     type=int,
                     help='Set port to use.')
 
-
 args = parser.parse_args()
 
 roundtrip_msgsizes = range(0, 10, 4)
@@ -23,8 +23,10 @@ throughput_msgsizes = range(10, 22, 2)
 size_msgsizes = range(16, 21)
 
 if args.mode == 'roundtrip':
-    testing.roundtrip(roundtrip_msgsizes, **args.__dict__)
+    plot.bar_chart(*testing.roundtrip(roundtrip_msgsizes, **args.__dict__),
+                   title='Round Trip Time',
+                   xlabel='Packet Size (B)', ylabel='RTT (ms)', ymul=1000)
 elif args.mode == 'throughput':
-    testing.throughput(throughput_msgsizes, **args.__dict__)
+    print(testing.throughput(throughput_msgsizes, **args.__dict__))
 else:
-    testing.sizes(sizes_msgsizes, **args.__dict__)
+    print(testing.sizes(sizes_msgsizes, **args.__dict__))
