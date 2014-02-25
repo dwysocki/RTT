@@ -107,10 +107,6 @@ class serversocket(mysocket):
                     commands = client.recvby(3, 3)
                     mode, options = commands[0], commands[1:]
 
-#                    if mode == MODE_QUIT:
-#                        print("Ending server")
-                        # the two finally blocks will close all sockets
-#                        return
                     if mode == MODE_ROUNDTRIP:
                         self._roundtrip_tcp(client, options[0], *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
@@ -133,12 +129,10 @@ class serversocket(mysocket):
                 try:
                     commands, address = self.recvfrom(2)
                     print("connected to {}".format(address))
-
+                    address = (address[0], self.port)
+                    
                     mode, msgsize = commands
 
-#                    if mode == MODE_QUIT:
-#                        print("Ending server")
-#                        return
                     if mode == MODE_ROUNDTRIP:
                         self._roundtrip_udp(address, msgsize, *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
