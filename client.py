@@ -32,7 +32,7 @@ elif args.mode == 'throughput':
                   xlabel='Message Size (kB)', ylabel='throughput (kbps)',
                   xmul=2**-10, ymul=8*2**-10)
 else:
-    plot.box_plot(*testing.sizes(2**20, size_counts, **args.__dict__),
+    plot.box_plot(*testing.sizes(20, size_counts, **args.__dict__),
                   title='Size-Number Interaction',
                   xlabel='Number of messages', ylabel='throughput (kbps)',
                   ymul=8*2**-10)

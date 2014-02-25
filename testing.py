@@ -55,8 +55,18 @@ def sizes(msgsize, counts, host, port, *args, **kwargs):
     
     latency = stats.mean(list(
         roundtrip_generator(8, 10, socket.SOCK_STREAM, host, port)))/2
-    data = msgsize / numpy.array(
-        [list(sizes_generator(msgsize, n, 10, host, port))
-         for n in counts])
+    data = numpy.array([list(sizes_generator(msgsize, n, 10, host, port))
+                        for n in counts]) - latency
+    data = 2**msgsize / data
 
     return data, labels
+
+def sizes_generator(msgsize, count, iterations, host, port):
+    sock = None
+    for i in range(iterations):
+        try:
+            sock = mysocket.clientsocket(host=host, port=port)
+            yield sock.sizes(msgsize, count)
+        finally:
+            if sock is not None:
+                sock.close()

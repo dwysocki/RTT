@@ -104,7 +104,8 @@ class serversocket(mysocket):
                         self._throughput_tcp(client, options[0],
                                              *args, **kwargs)
                     elif mode == MODE_SIZES:
-                        self._sizes_tcp(client, *(options + args), **kwargs)
+                        self._sizes_tcp(client, *(tuple(options) + args),
+                                        **kwargs)
                     else:
                         client.send(NACK)
                         print("mode not implemented")
