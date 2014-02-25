@@ -167,12 +167,11 @@ class serversocket(mysocket):
 
         # receive message
         try:
-#            msg = self.recvfromby(msgsize, msgsize)[0]
-             msg = self.recvby(msgsize, msgsize)
+            msg = self.recvby(msgsize, msgsize)
+            self.sendto(msg, address)
         except socket.timeout as to:
             print("{} {}".format(address, to))
-        # send message back
-        self.sendto(msg, address)
+
 
     def _throughput_tcp(self, client, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
