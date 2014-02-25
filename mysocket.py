@@ -172,6 +172,7 @@ class serversocket(mysocket):
         except socket.timeout as to:
             print("{} {}".format(address, to))
         # send message back
+        print("msg:{}\naddr:{}".format(msg, (address, self.port)))
         self.sendto(msg, (address, self.port))
 
     def _throughput_tcp(self, client, msgsize, *args, **kwargs):
