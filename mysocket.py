@@ -4,7 +4,7 @@ import time
 import utils
 
 MODE_QUIT, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(4)
-NACK, ACK = b'01'
+NACK, ACK = b'0', b'1'
 
 class mysocket(socket.socket):
     def __init__(self, port=8888, *args, **kwargs):
