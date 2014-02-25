@@ -167,7 +167,7 @@ class serversocket(mysocket):
 
         # receive message
         try:
-            msg, address = self.recvfromby(msgsize, msgsize)
+            msg = self.recvfromby(msgsize, msgsize)[0]
         except socket.timeout as to:
             print("{} {}".format(address, to))
         # send message back
