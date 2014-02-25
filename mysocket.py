@@ -142,6 +142,15 @@ class serversocket(mysocket):
     
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
         msgsize = 2**msgsize
+        n = 2**n
+        bufsize = int(msgsize/n)
+
+        client.send(ACK)
+
+        # receive message
+        msg = client.recvby(msgsize, bufsize)
+        # send ACK
+        client.send(ACK)
 
 
 class clientsocket(mysocket):
@@ -165,7 +174,7 @@ class clientsocket(mysocket):
             raise ValueError("type {} not supported".format(self.type))
 
     def throughput(self, msgsize, *args, **kwargs):
-        self.sendall(bytes([MODE_THROUGHPUT, msgsize]))
+        self.sendall(bytes([MODE_THROUGHPUT, msgsize, 0]))
         if self.recv(1) is NACK:
             return
 
@@ -216,7 +225,7 @@ class clientsocket(mysocket):
         start_time = time.time()
 
         self.sendall(msg)
-        recv(1)
+        self.recv(1)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -226,6 +235,16 @@ class clientsocket(mysocket):
     def _throughput_udp(self, *args, **kwargs):
         command = bytes([MODE_THROUGHPUT, msgsize, n])
 
-    def _sizes_tcp(self, *args, **kwargs):
-        command = bytes([MODE_SIZES, msgsize, n])
+    def _sizes_tcp(self, msgsize, n, *args, **kwargs):
+        msg = utils.makebytes(msgsize)
+        bufsize = int(msgsize/n)
 
+        start_time = time.time()
+
+        self.sendby(msg, bufsize)
+        self.recv(1)
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
+        return elapsed_time

@@ -61,6 +61,7 @@ def box_plot(data, labels,
 
     ax.boxplot(list(ymul*data))
     ax.set_title(title)
+    ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_xticklabels(list(map(str, xmul*labels)))
 

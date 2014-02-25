@@ -20,7 +20,7 @@ args = parser.parse_args()
 
 roundtrip_msgsizes = range(0, 10, 4)
 throughput_msgsizes = range(10, 22, 2)
-size_msgsizes = range(16, 21)
+size_counts = range(8, 17)
 
 if args.mode == 'roundtrip':
     plot.box_plot(*testing.roundtrip(roundtrip_msgsizes, **args.__dict__),
@@ -31,6 +31,8 @@ elif args.mode == 'throughput':
                   title='Throughput',
                   xlabel='Message Size (kB)', ylabel='throughput (kbps)',
                   xmul=2**-10, ymul=8*2**-10)
-#    print(testing.throughput(throughput_msgsizes, **args.__dict__))
 else:
-    print(testing.sizes(sizes_msgsizes, **args.__dict__))
+    plot.box_plot(*testing.sizes(2**20, size_counts, **args.__dict__),
+                  title='Size-Number Interaction',
+                  xlabel='Number of messages', ylabel='throughput (kbps)',
+                  ymul=8*2**-10)
