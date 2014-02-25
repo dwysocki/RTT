@@ -1,6 +1,7 @@
-import numpy as np
+import numpy
 import matplotlib.pyplot as plt
 
+import stats
 import utils
 
 def bar_chart(data, labels,
@@ -8,7 +9,6 @@ def bar_chart(data, labels,
     """Makes a bar chart"""
     N = len(labels)
 
-    
     # we have a generator full of tuples. if we were to make that into a
     # 2d array, we would have to transpose it for it to unpack properly
     # either do as a numpy array, or find some way to do it with itertools.
@@ -17,12 +17,12 @@ def bar_chart(data, labels,
         tuple(stats.summary(d) for d in data)))
     
     # # there's probably a way to do this much better with zip
-    # means = ymul*np.fromiter((data[k]["mean"] for k in keys), np.float)
-    # stds  = ymul*np.fromiter((data[k]["std" ] for k in keys), np.float)
-    # mins  = ymul*np.fromiter((data[k]["min" ] for k in keys), np.float)
-    # maxs  = ymul*np.fromiter((data[k]["max" ] for k in keys), np.float)
+    # means = ymul*numpy.fromiter((data[k]["mean"] for k in keys), numpy.float)
+    # stds  = ymul*numpy.fromiter((data[k]["std" ] for k in keys), numpy.float)
+    # mins  = ymul*numpy.fromiter((data[k]["min" ] for k in keys), numpy.float)
+    # maxs  = ymul*numpy.fromiter((data[k]["max" ] for k in keys), numpy.float)
 
-    x_offsets = np.arange(N)
+    x_offsets = numpy.arange(N)
     width = 0.22
 
     fig, ax = plt.subplots()
@@ -37,7 +37,7 @@ def bar_chart(data, labels,
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_xticks(x_offsets+(1.5*width))
-#    ax.set_xticklabels(np.fromfunction(
+#    ax.set_xticklabels(numpy.fromfunction(
 #        function=lambda i: str(xmul*keys[i]), shape=(N,)))
     ax.set_xticklabels(list(map(str, xmul*labels)))
 
@@ -50,7 +50,18 @@ def bar_chart(data, labels,
 
     plt.show()
 
-def box_plot(data, title='Box Plot', xlabel='x', ylabel='y', xmul=1, ymul=1):
+def box_plot(data, labels,
+             title='Box Plot', xlabel='x', ylabel='y', xmul=1, ymul=1):
     """Makes a box plot
     http://matplotlib.org/examples/pylab_examples/boxplot_demo.html"""
-    pass
+    N = len(labels)
+    x_offsets = numpy.arange(N)
+    
+    fig, ax = plt.subplots()
+
+    ax.boxplot(list(ymul*data))
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    ax.set_xticklabels(list(map(str, xmul*labels)))
+
+    plt.show()

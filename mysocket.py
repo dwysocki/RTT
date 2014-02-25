@@ -4,7 +4,7 @@ import time
 import utils
 
 MODE_QUIT, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(4)
-NACK, ACK = range(2)
+NACK, ACK = b'01'
 
 class mysocket(socket.socket):
     def __init__(self, port=8888, *args, **kwargs):
@@ -101,12 +101,12 @@ class serversocket(mysocket):
                     elif mode == MODE_ROUNDTRIP:
                         self._roundtrip_tcp(client, options[0], *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
-                        self._throughput_tcp(client,
-                                             *(options + args), **kwargs)
+                        self._throughput_tcp(client, options[0],
+                                             *args, **kwargs)
                     elif mode == MODE_SIZES:
                         self._sizes_tcp(client, *(options + args), **kwargs)
                     else:
-                        client.send(bytes([NACK]))
+                        client.send(NACK)
                         print("mode not implemented")
                 finally:
                     client.close()
@@ -118,7 +118,7 @@ class serversocket(mysocket):
 
     def _roundtrip_tcp(self, client, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
-        client.send(bytes([ACK]))
+        client.send(ACK)
 
         # receive message
         msg = client.recvby(msgsize, msgsize)
@@ -126,12 +126,18 @@ class serversocket(mysocket):
         client.sendby(msg, msgsize, msgsize)
 
     def _roundtrip_udp(self, client, msgsize, *args, **kwargs):
-        msgsize = 2**msgsize
-
-    def _throughput_tcp(self, client, msgsize, n, *args, **kwargs):
         pass
 
-    def _throughput_udp(self, client, msgsize, n, *args, **kwargs):
+    def _throughput_tcp(self, client, msgsize, *args, **kwargs):
+        msgsize = 2**msgsize
+        client.send(ACK)
+
+        # receive message
+        msg = client.recvby(msgsize, msgsize)
+        # send ACK
+        client.send(ACK)
+
+    def _throughput_udp(self, client, msgsize, *args, **kwargs):
         pass
     
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
@@ -158,23 +164,22 @@ class clientsocket(mysocket):
         else:
             raise ValueError("type {} not supported".format(self.type))
 
-    def throughput(self, msgsize, n, *args, **kwargs):
-        self.sendall(bytes([MODE_THROUGHPUT, msgsize, n]))
+    def throughput(self, msgsize, *args, **kwargs):
+        self.sendall(bytes([MODE_THROUGHPUT, msgsize]))
         if self.recv(1) is NACK:
             return
 
         msgsize = 2**msgsize
-        n = 2**n
         
         if self.type == socket.SOCK_STREAM:
-            return self._throughput_tcp(msgsize, n, *args, **kwargs)
+            return self._throughput_tcp(msgsize, *args, **kwargs)
         elif self.type == socket.SOCK_DGRAM:
-            return self._throughput_udp(msgsize, n, *args, **kwargs)
+            return self._throughput_udp(msgsize, *args, **kwargs)
         else:
             raise ValueError("type {} not supported".format(self.type))
 
     def sizes(self, msgsize, n, *args, **kwargs):
-        self.sendall(bytes([MODE_THROUGHPUT, msgsize, n]))
+        self.sendall(bytes([MODE_SIZES, msgsize, n]))
         if self.recv(1) is NACK:
             return
 
@@ -202,11 +207,21 @@ class clientsocket(mysocket):
         return elapsed_time
         
 
-    def _roundtrip_udp(self, *args, **kwargs):
+    def _roundtrip_udp(self, msgsize, *args, **kwargs):
         command = bytes([MODE_ROUNDTRIP, msgsize])
 
-    def _throughput_tcp(self, *args, **kwargs):
-        command = bytes([MODE_THROUGHPUT, msgsize, n])
+    def _throughput_tcp(self, msgsize, *args, **kwargs):
+        msg = utils.makebytes(msgsize)
+
+        start_time = time.time()
+
+        self.sendall(msg)
+        recv(1)
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
+        return elapsed_time
 
     def _throughput_udp(self, *args, **kwargs):
         command = bytes([MODE_THROUGHPUT, msgsize, n])

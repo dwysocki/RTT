@@ -23,10 +23,14 @@ throughput_msgsizes = range(10, 22, 2)
 size_msgsizes = range(16, 21)
 
 if args.mode == 'roundtrip':
-    plot.bar_chart(*testing.roundtrip(roundtrip_msgsizes, **args.__dict__),
-                   title='Round Trip Time',
-                   xlabel='Packet Size (B)', ylabel='RTT (ms)', ymul=1000)
+    plot.box_plot(*testing.roundtrip(roundtrip_msgsizes, **args.__dict__),
+                  title='Round Trip Time',
+                  xlabel='Packet Size (B)', ylabel='RTT (ms)', ymul=1000)
 elif args.mode == 'throughput':
-    print(testing.throughput(throughput_msgsizes, **args.__dict__))
+    plot.box_plot(*testing.throughput(throughput_msgsizes, **args.__dict__),
+                  title='Throughput',
+                  xlabel='Message Size (kB)', ylabel='throughput (kbps)',
+                  xmul=2**-10, ymul=8*2**-10)
+#    print(testing.throughput(throughput_msgsizes, **args.__dict__))
 else:
     print(testing.sizes(sizes_msgsizes, **args.__dict__))
