@@ -52,8 +52,7 @@ def bar_chart(data, labels,
 
 def box_plot(data, labels,
              title='Box Plot', xlabel='x', ylabel='y', xmul=1, ymul=1):
-    """Makes a box plot
-    http://matplotlib.org/examples/pylab_examples/boxplot_demo.html"""
+    """Makes a box plot"""
     N = len(labels)
     x_offsets = numpy.arange(N)
     
@@ -63,6 +62,6 @@ def box_plot(data, labels,
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.set_xticklabels(list(map(str, xmul*labels)))
+    ax.set_xticklabels(list(map(lambda x: str(int(x)), xmul*labels)))
 
     plt.show()

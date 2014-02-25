@@ -7,12 +7,13 @@ import utils
 
 def roundtrip(msgsizes, type, host, port, *args, **kwargs):
     type = utils.type_map[type]
+    msgsizes = sorted(msgsizes)
 
-    labels = numpy.fromiter((2**msgsize for msgsize in sorted(msgsizes)),
+    labels = numpy.fromiter((2**msgsize for msgsize in msgsizes),
                             numpy.float)
     data = numpy.array(
         [list(roundtrip_generator(msgsize, 100, type, host, port))
-         for msgsize in sorted(msgsizes)])
+         for msgsize in msgsizes])
     return data, labels
 
 def roundtrip_generator(msgsize, iterations, type, host, port):
