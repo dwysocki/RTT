@@ -21,7 +21,10 @@ def roundtrip_generator(msgsize, iterations, type, host, port):
     for i in range(iterations):
         try:
             sock = mysocket.clientsocket(type=type, host=host, port=port)
-            yield sock.roundtrip(msgsize)
+            RTT = sock.roundtrip(msgsize)
+            print(RTT)
+            if RTT is not None:
+                yield RTT
         finally:
             if sock is not None:
                 sock.close()

@@ -3,7 +3,7 @@ import time
 
 import utils
 
-MODE_QUIT, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(4)
+MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(3)
 NACK, ACK = b'0', b'1'
 
 class mysocket(socket.socket):
@@ -107,11 +107,11 @@ class serversocket(mysocket):
                     commands = client.recvby(3, 3)
                     mode, options = commands[0], commands[1:]
 
-                    if mode == MODE_QUIT:
-                        print("Ending server")
+#                    if mode == MODE_QUIT:
+#                        print("Ending server")
                         # the two finally blocks will close all sockets
-                        return
-                    elif mode == MODE_ROUNDTRIP:
+#                        return
+                    if mode == MODE_ROUNDTRIP:
                         self._roundtrip_tcp(client, options[0], *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
                         self._throughput_tcp(client, options[0],
@@ -136,10 +136,10 @@ class serversocket(mysocket):
 
                     mode, msgsize = commands
 
-                    if mode == MODE_QUIT:
-                        print("Ending server")
-                        return
-                    elif mode == MODE_ROUNDTRIP:
+#                    if mode == MODE_QUIT:
+#                        print("Ending server")
+#                        return
+                    if mode == MODE_ROUNDTRIP:
                         self._roundtrip_udp(address, msgsize, *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
                         self._throughput_udp(address, msgsize, *args, **kwargs)
@@ -267,8 +267,9 @@ class clientsocket(mysocket):
             start_time = time.time()
 
             self.sendto(msg, self.destination)
-            recvmsg = self.recvfromby(msgsize, msgsize)
+            recvmsg = self.recvby(msgsize, msgsize)
         except socket.timeout as to:
+            print("{} {}".format(self.destination, to))
             return
 
     def _throughput_tcp(self, msgsize, *args, **kwargs):
