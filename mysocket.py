@@ -115,7 +115,28 @@ class serversocket(mysocket):
             self.close()
 
     def _udp_loop(self, *args, **kwargs):
-        print("UDP not yet implemented")
+        try:
+            while True:
+                commands, address = self.recvfrom(2)
+                # if no message was received, try again
+                if not commands:
+                    continue
+                else:
+                    print("connected to {}".format(address))
+                mode, msgsize = commands
+
+                if mode == MODE_QUIT:
+                    print("Ending server")
+                    return
+                elif mode == MODE_ROUNDTRIP:
+                    self._roundtrip_udp(addr, msgsize, *args, **kwargs)
+                elif mode == MODE_THROUGHPUT:
+                    self._throughput_udp(addr, msgsize, *args, **kwargs)
+                else:
+                    self.sendto(NACK, address)
+                    print("mode not implemented")
+        finally:
+            self.close()
 
     def _roundtrip_tcp(self, client, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
@@ -126,8 +147,15 @@ class serversocket(mysocket):
         # send message back
         client.sendby(msg, msgsize, msgsize)
 
-    def _roundtrip_udp(self, client, msgsize, *args, **kwargs):
-        pass
+    def _roundtrip_udp(self, address, msgsize, *args, **kwargs):
+        msgsize = 2**msgsize
+        # send ACK
+        self.sendto(ACK, address)
+
+        # receive message
+        msg = self.recvby(msgsize, msgsize)
+        # send message back
+        self.sendto(msg, address)
 
     def _throughput_tcp(self, client, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
@@ -138,8 +166,15 @@ class serversocket(mysocket):
         # send ACK
         client.send(ACK)
 
-    def _throughput_udp(self, client, msgsize, *args, **kwargs):
-        pass
+    def _throughput_udp(self, address, msgsize, *args, **kwargs):
+        msgsize = 2**msgsize
+        # send ACK
+        self.sendto(ACK, address)
+
+        # receive message
+        msg = self.recvby(msgsize, msgsize)
+        # send ACK
+        self.sendto(ACK, address)
     
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
         msgsize = 2**msgsize
@@ -158,7 +193,8 @@ class clientsocket(mysocket):
     def __init__(self, host='', *args, **kwargs):
         super(clientsocket, self).__init__(*args, **kwargs)
         self.host = host
-        self.connect((self.host, self.port))
+        if self.type == socket.SOCK_STREAM:
+            self.connect((self.host, self.port))
 
     def roundtrip(self, msgsize, *args, **kwargs):
         self.sendall(bytes([MODE_ROUNDTRIP, msgsize, 0]))
@@ -218,7 +254,12 @@ class clientsocket(mysocket):
         
 
     def _roundtrip_udp(self, msgsize, *args, **kwargs):
-        command = bytes([MODE_ROUNDTRIP, msgsize])
+        msg = utils.makebytes(msgsize)
+
+        start_time = time.time()
+
+        self.sendto(msg, (host, port))
+        recvmsg = self.recvby(msgsize, msgsize)
 
     def _throughput_tcp(self, msgsize, *args, **kwargs):
         msg = utils.makebytes(msgsize)
@@ -242,7 +283,9 @@ class clientsocket(mysocket):
 
         start_time = time.time()
 
-        self.sendby(msg, bufsize)
+        # send messages
+        self.sendby(msg, msgsize, bufsize)
+        # wait for ACK
         self.recv(1)
 
         end_time = time.time()

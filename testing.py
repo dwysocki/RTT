@@ -51,7 +51,7 @@ def throughput_generator(msgsize, iterations, type, host, port):
 
 def sizes(msgsize, counts, host, port, *args, **kwargs):
     counts = sorted(counts)
-    labels = numpy.fromiter((2**n for n in counts), numpy.float)
+    labels = numpy.fromiter((2**n for n in counts), int)
     
     latency = stats.mean(list(
         roundtrip_generator(8, 10, socket.SOCK_STREAM, host, port)))/2

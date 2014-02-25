@@ -20,7 +20,7 @@ args = parser.parse_args()
 
 roundtrip_msgsizes = range(0, 10, 4)
 throughput_msgsizes = range(10, 22, 2)
-size_counts = range(8, 17)
+size_counts = range(8, 13)
 
 if args.mode == 'roundtrip':
     plot.box_plot(*testing.roundtrip(roundtrip_msgsizes, **args.__dict__),
