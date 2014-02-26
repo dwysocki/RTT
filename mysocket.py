@@ -10,11 +10,13 @@ class mysocket(socket.socket):
     def __init__(self, port=8888, udp_timeout=1.0, *args, **kwargs):
         super(mysocket, self).__init__(*args, **kwargs)
         self.port = port
-        if (self.type % 2**11) == socket.SOCK_DGRAM:
+        if self.is_udp():
             self.settimeout(udp_timeout)
     
     def sendby(self, msg, msgsize, bufsize):
         """Sends an entire message in chunks of size bufsize"""
+        if msgsize < bufsize:
+            bufsize = msgsize
         bufsize += 1 # account for string slicing being end-exclusive
         sent = 0
 
@@ -26,6 +28,8 @@ class mysocket(socket.socket):
         return start_time
 
     def sendtoby(self, msg, msgsize, bufsize, recipient):
+        if msgsize < bufsize:
+            bufsize = msgsize
         bufsize += 1
         sent = 0
 
@@ -58,6 +62,12 @@ class mysocket(socket.socket):
             msg += buffer
 
         return msg, address
+
+    def is_tcp(self):
+        return utils.get_bit(self.type, 0)
+
+    def is_udp(self):
+        return utils.get_bit(self.type, 1)
                 
 class serversocket(mysocket):
     def __init__(self, *args, **kwargs):
@@ -83,9 +93,9 @@ class serversocket(mysocket):
 
     def activate(self, *args, **kwargs):
         self.bind((self.host, self.port))
-        if (self.type % 2**11) == socket.SOCK_STREAM:
+        if self.is_tcp():
             return self._tcp_loop(*args, **kwargs)
-        elif (self.type % 2**11) == socket.SOCK_DGRAM:
+        elif self.is_udp():
             return self._udp_loop(*args, **kwargs)
         else:
             raise ValueError("type {} serversocket not implemented".format(
@@ -203,29 +213,29 @@ class clientsocket(mysocket):
     def __init__(self, host='', *args, **kwargs):
         super(clientsocket, self).__init__(*args, **kwargs)
         self.host = host
-        if (self.type % 2**11) == socket.SOCK_STREAM:
+        if self.is_tcp():
             self.connect((self.host, self.port))
-        if (self.type % 2**11) == socket.SOCK_DGRAM:
+        elif self.is_udp():
             self.destination = (self.host, self.port)
 
     def roundtrip(self, msgsize, *args, **kwargs):
-        if (self.type % 2**11) == socket.SOCK_STREAM:
+        if self.is_tcp():
             return self._roundtrip_tcp(msgsize, *args, **kwargs)
-        elif (self.type % 2**11) == socket.SOCK_DGRAM:
+        elif self.is_udp():
             return self._roundtrip_udp(msgsize, *args, **kwargs)
         else:
             raise ValueError("type {} not supported".format(self.type))
 
     def throughput(self, msgsize, *args, **kwargs):
-        if (self.type % 2**11) == socket.SOCK_STREAM:
+        if self.is_tcp():
             return self._throughput_tcp(msgsize, *args, **kwargs)
-        elif (self.type % 2**11) == socket.SOCK_DGRAM:
+        elif self.is_udp():
             return self._throughput_udp(msgsize, *args, **kwargs)
         else:
             raise ValueError("type {} not supported".format(self.type))
 
     def sizes(self, msgsize, n, *args, **kwargs):
-        if (self.type % 2**11) == socket.SOCK_STREAM:
+        if self.is_tcp():
             return self._sizes_tcp(msgsize, n, *args, **kwargs)
         else:
             raise ValueError("type {} not supported".format(self.type))
@@ -300,15 +310,20 @@ class clientsocket(mysocket):
             msgsize = 2**msgsize
             msg = utils.makebytes(msgsize)
 
-            start_time = time.time()
+            try:
+                original_timeout = self.timeout
+                self.settimeout(15*original_timeout)
+                start_time = time.time()
 
-            self.sendtoby(msg, msgsize, 2**13, self.destination)
-            response = self.recv(1)
+                self.sendtoby(msg, msgsize, 2**13, self.destination)
+                response = self.recv(1)
 
-            end_time = time.time()
-            elapsed_time = end_time - start_time
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+            finally:
+                self.settimeout(original_timeout)
 
-            return elapsed_time if response == ACK else None
+            return elapsed_time if response is ACK else None
         except socket.timeout as to:
             print("{} {}".format(self.destination, to))
             time.sleep(1.0)
