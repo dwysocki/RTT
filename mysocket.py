@@ -45,12 +45,13 @@ class mysocket(socket.socket):
         received = 0
         msg = b''
 
-        while received < msgsize:
-            buffer = self.recv(bufsize)
-            received += len(buffer)
-            msg += buffer
-
-        return msg
+        try:
+            while received < msgsize:
+                buffer = self.recv(bufsize)
+                received += len(buffer)
+                msg += buffer
+        finally:
+            return msg, received
 
     def recvfromby(self, msgsize, bufsize):
         received = 0
@@ -116,7 +117,7 @@ class serversocket(mysocket):
                     # first byte selects the mode, the other two are
                     # mode-specific options, to be parsed by that mode's
                     # function
-                    commands = client.recvby(3, 3)
+                    commands = client.recvby(3, 3)[0]
                     mode, options = commands[0], commands[1:]
 
                     if mode == MODE_ROUNDTRIP:
@@ -161,7 +162,7 @@ class serversocket(mysocket):
         client.send(ACK)
 
         # receive message
-        msg = client.recvby(msgsize, msgsize)
+        msg = client.recvby(msgsize, msgsize)[0]
         # send message back
         client.sendby(msg, msgsize, msgsize)
 
@@ -182,22 +183,27 @@ class serversocket(mysocket):
         client.send(ACK)
 
         # receive message
-        msg = client.recvby(msgsize, msgsize)
+        msg = client.recvby(msgsize, msgsize)[0]
         # send ACK
         client.send(ACK)
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
         datagram_size = 2**13
-        # send ACK
-        self.sendto(ACK, address)
 
-        print("receiving message")
+        self.sendto(str(self.timeout).encode(), address)
+        
         # receive message
-        msg = self.recvby(msgsize, datagram_size)
-        print("sending ACK")
-        # send ACK
-        self.sendto(ACK, address)
+        msg, received = self.recvby(msgsize, datagram_size)
+        # echo message back if one was received
+        if received > 0:
+            self.sendtoby(msg, received, datagram_size, address)
+            self.settimeout(5 * self.timeout)
+            try:
+                if self.recv(1) is ACK:
+                    self.sendto(str(received).encode(), address)
+            finally:
+                self.settimeout(self.timeout / 5)
 
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
         msgsize = 2**msgsize
@@ -207,7 +213,7 @@ class serversocket(mysocket):
         client.send(ACK)
 
         # receive message
-        msg = client.recvby(msgsize, bufsize)
+        msg = client.recvby(msgsize, bufsize)[0]
         # send ACK
         client.send(ACK)
 
@@ -253,7 +259,7 @@ class clientsocket(mysocket):
         start_time = time.time()
 
         self.sendall(msg)
-        recvmsg = self.recvby(msgsize, msgsize)
+        recvmsg = self.recvby(msgsize, msgsize)[0]
 
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -303,6 +309,48 @@ class clientsocket(mysocket):
         return elapsed_time
 
     def _throughput_udp(self, msgsize, *args, **kwargs):
+        # send setup message
+        self.sendto(bytes([MODE_THROUGHPUT, msgsize, 0]), self.destination)
+        
+        try:
+            # server ACKs by sending its timeout duration, which will be used
+            # in the total time calculation
+            server_timeout = self.recv(1)[0]
+
+            msgsize = 2**msgsize
+            datagram_size = 2**13
+            msg = utils.makebytes(msgsize)
+
+            try:
+                self.settimeout(5 * self.timeout)
+                start_time = time.time()
+
+                # send the message
+                self.sendtoby(msg, msgsize, datagram_size, self.destination)
+                # receive the echoed message and record how much was actually
+                # received
+                recvmsg, client_received = self.recvby(msgsize, datagram_size)
+
+                end_time = time.time()
+                elapsed_time = (end_time - start_time -
+                                server_timeout - self.timeout)
+
+                # tell server that we've finished receiving and want to know
+                # how much the server received
+                self.sendto(ACK, self.destination)
+                server_received = float(self.recv(64).decode('utf-8'))
+
+                data_transmitted = client_received + server_received
+                throughput = data_transmitted / elapsed_time
+                return throughput
+            finally:
+                self.settimeout(self.timeout / 5)
+        except socket.timeout as to:
+            print("{} {}".format(self.destination, to))
+            # give the server a chance to stop sending
+            time.sleep(1.0)
+
+        
         # send data in 8KB blocks
         self.sendto(bytes([MODE_THROUGHPUT, msgsize, 0]), self.destination)
         try:
