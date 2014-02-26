@@ -161,7 +161,7 @@ class serversocket(mysocket):
 
         # receive message
         try:
-            msg = self.recvby(msgsize, msgsize)
+            msg = self.recv(msgsize)
             self.sendto(msg, address)
         except socket.timeout as to:
             print("{} {}".format(address, to))
@@ -252,8 +252,7 @@ class clientsocket(mysocket):
     def _roundtrip_udp(self, msgsize, *args, **kwargs):
         self.sendto(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
         try:
-            if self.recv(1) is NACK:
-                return
+            self.recv(1)
 
             msgsize = 2**msgsize
             msg = utils.makebytes(msgsize)
@@ -261,7 +260,7 @@ class clientsocket(mysocket):
             start_time = time.time()
 
             self.sendto(msg, self.destination)
-            recvmsg = self.recvby(msgsize, msgsize)
+            recvmsg = self.recv(msgsize)
         except socket.timeout as to:
             print("{} {}".format(self.destination, to))
             return
