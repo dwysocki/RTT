@@ -94,8 +94,10 @@ class serversocket(mysocket):
     def activate(self, *args, **kwargs):
         self.bind((self.host, self.port))
         if self.is_tcp():
+            print("TCP: {}".format(self.is_tcp()))
             return self._tcp_loop(*args, **kwargs)
         elif self.is_udp():
+            print("UDP: {}".format(self.is_udp()))
             return self._udp_loop(*args, **kwargs)
         else:
             raise ValueError("type {} serversocket not implemented".format(
