@@ -189,6 +189,7 @@ class serversocket(mysocket):
         client.send(ACK)
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
+        timeout_multiplier = msgsize / 1.5
         msgsize = 2**msgsize
         datagram_size = 2**13
 
@@ -199,12 +200,12 @@ class serversocket(mysocket):
         # echo message back if one was received
         if received > 0:
             self.sendtoby(msg, received, datagram_size, address)
-            self.settimeout(5 * self.timeout)
+            self.settimeout(timeout_multiplier * self.timeout)
             try:
                 self.recv(1)
                 self.sendto(str(received).encode(), address)
             finally:
-                self.settimeout(self.timeout / 5)
+                self.settimeout(self.timeout / timeout_multiplier)
 
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
         msgsize = 2**msgsize
@@ -318,12 +319,13 @@ class clientsocket(mysocket):
             # in the total time calculation
             server_timeout = self.recv(1)[0]
 
+            timeout_multiplier = msgsize / 1.5
             msgsize = 2**msgsize
             datagram_size = 2**13
             msg = utils.makebytes(msgsize)
 
             try:
-                self.settimeout(5 * self.timeout)
+                self.settimeout(timeout_multiplier * self.timeout)
                 start_time = time.time()
 
                 # send the message
@@ -345,7 +347,7 @@ class clientsocket(mysocket):
                 throughput = data_transmitted / elapsed_time
                 return throughput
             finally:
-                self.settimeout(self.timeout / 5)
+                self.settimeout(self.timeout / timeout_multiplier)
         except socket.timeout as to:
             print("{} {}".format(self.destination, to))
             # give the server a chance to stop sending
