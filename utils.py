@@ -12,7 +12,7 @@ def makebytes(n):
 
 def get_bit(decimal, N):
     """Returns the `N`th bit from `decimal`"""
-    constant = 1 << (N-1)
+    constant = 1 << N
     return decimal & constant
 
 type_map = {'TCP' : socket.SOCK_STREAM,
