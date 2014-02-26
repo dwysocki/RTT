@@ -189,7 +189,7 @@ class serversocket(mysocket):
         client.send(ACK)
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
-        timeout_multiplier = msgsize / 1.5
+        timeout_multiplier = msgsize
         msgsize = 2**msgsize
         datagram_size = 2**13
 
@@ -319,7 +319,7 @@ class clientsocket(mysocket):
             # in the total time calculation
             server_timeout = self.recv(1)[0]
 
-            timeout_multiplier = msgsize / 1.5
+            timeout_multiplier = msgsize
             msgsize = 2**msgsize
             datagram_size = 2**13
             msg = utils.makebytes(msgsize)
