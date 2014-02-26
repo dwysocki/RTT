@@ -176,11 +176,12 @@ class serversocket(mysocket):
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
+        datagram_size = 2**13
         # send ACK
         self.sendto(ACK, address)
 
         # receive message
-        msg = self.recvby(msgsize, 2**13)
+        msg = self.recvby(msgsize, datagram_size)
         # send ACK
         self.sendto(ACK, address)
 
@@ -251,7 +252,6 @@ class clientsocket(mysocket):
         self.sendto(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
         try:
             self.recv(1)
-            print("ACK received")
 
             msgsize = 2**msgsize
             msg = utils.makebytes(msgsize)
@@ -260,6 +260,11 @@ class clientsocket(mysocket):
 
             self.sendto(msg, self.destination)
             recvmsg = self.recv(msgsize)
+
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
+            return elapsed_time
         except socket.timeout as to:
             print("{} {}".format(self.destination, to))
             time.sleep(1.0)
@@ -285,13 +290,27 @@ class clientsocket(mysocket):
 
     def _throughput_udp(self, *args, **kwargs):
         # send data in 8KB blocks
-        self.sendtoby(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
-        if self.recv(1) is NACK:
+        self.sendto(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
+        try:
+            # await ACK
+            self.recv(1)
+
+            msgsize = 2**msgsize
+            msg = utils.makebytes(msgsize)
+
+            start_time = time.time()
+
+            self.sendtoby(msg, msgsize, 2**13, self.destination)
+            response = self.recv(1)
+
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
+            return elapsed_time if response == ACK else None
+        except socket.timeout as to:
+            print("{} {}".format(self.destination, to))
+            time.sleep(1.0)
             return
-
-        msgsize = 2**msgsize
-        msg = utils.makebytes(msgsize)
-
 
     def _sizes_tcp(self, msgsize, n, *args, **kwargs):
         self.sendall(bytes([MODE_SIZES, msgsize, n]))
