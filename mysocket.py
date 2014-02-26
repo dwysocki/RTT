@@ -200,12 +200,14 @@ class serversocket(mysocket):
         # echo message back if one was received
         if received > 0:
             self.sendtoby(msg, received, datagram_size, address)
-            self.settimeout(timeout_multiplier * self.timeout)
-            try:
-                self.recv(1)
-                self.sendto(str(received).encode(), address)
-            finally:
-                self.settimeout(self.timeout / timeout_multiplier)
+            tries_left = 10
+            while tries_left > 0:
+                try:
+                    self.recv(1)
+                    self.sendto(str(received).encode(), address)
+                    return
+                except socket.timeout:
+                    tries_left -= 1
 
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
         msgsize = 2**msgsize
