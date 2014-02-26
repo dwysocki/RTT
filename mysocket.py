@@ -129,7 +129,6 @@ class serversocket(mysocket):
                 try:
                     commands, address = self.recvfrom(2)
                     print("connected to {}".format(address))
-                    address = (address[0], self.port)
                     
                     mode, msgsize = commands
 
@@ -165,7 +164,6 @@ class serversocket(mysocket):
             self.sendto(msg, address)
         except socket.timeout as to:
             print("{} {}".format(address, to))
-
 
     def _throughput_tcp(self, client, msgsize, *args, **kwargs):
         msgsize = 2**msgsize
@@ -253,6 +251,7 @@ class clientsocket(mysocket):
         self.sendto(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
         try:
             self.recv(1)
+            print("ACK received")
 
             msgsize = 2**msgsize
             msg = utils.makebytes(msgsize)
@@ -263,6 +262,7 @@ class clientsocket(mysocket):
             recvmsg = self.recv(msgsize)
         except socket.timeout as to:
             print("{} {}".format(self.destination, to))
+            time.sleep(1.0)
             return
 
     def _throughput_tcp(self, msgsize, *args, **kwargs):
