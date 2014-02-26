@@ -64,10 +64,10 @@ class mysocket(socket.socket):
         return msg, address
 
     def is_tcp(self):
-        return utils.get_bit(self.type, 0)
+        return utils.get_bit(self.type, socket.SOCK_STREAM-1)
 
     def is_udp(self):
-        return utils.get_bit(self.type, 1)
+        return utils.get_bit(self.type, socket.SOCK_DGRAM-1)
                 
 class serversocket(mysocket):
     def __init__(self, *args, **kwargs):
