@@ -200,8 +200,8 @@ class serversocket(mysocket):
             self.sendtoby(msg, received, datagram_size, address)
             self.settimeout(5 * self.timeout)
             try:
-                if self.recv(1) is ACK:
-                    self.sendto(str(received).encode(), address)
+                self.recv(1)
+                self.sendto(str(received).encode(), address)
             finally:
                 self.settimeout(self.timeout / 5)
 
@@ -338,7 +338,7 @@ class clientsocket(mysocket):
                 # tell server that we've finished receiving and want to know
                 # how much the server received
                 self.sendto(ACK, self.destination)
-                server_received = float(self.recv(64).decode('utf-8'))
+                server_received = float(self.recv(10).decode('utf-8'))
 
                 data_transmitted = client_received + server_received
                 throughput = data_transmitted / elapsed_time
@@ -349,35 +349,6 @@ class clientsocket(mysocket):
             print("{} {}".format(self.destination, to))
             # give the server a chance to stop sending
             time.sleep(1.0)
-
-        
-        # send data in 8KB blocks
-        self.sendto(bytes([MODE_THROUGHPUT, msgsize, 0]), self.destination)
-        try:
-            # await ACK
-            self.recv(1)
-
-            msgsize = 2**msgsize
-            msg = utils.makebytes(msgsize)
-
-            try:
-                original_timeout = self.timeout
-                self.settimeout(15*original_timeout)
-                start_time = time.time()
-
-                self.sendtoby(msg, msgsize, 2**13, self.destination)
-                response = self.recv(1)
-
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-            finally:
-                self.settimeout(original_timeout)
-
-            return elapsed_time if response is ACK else None
-        except socket.timeout as to:
-            print("{} {}".format(self.destination, to))
-            time.sleep(1.0)
-            return
 
     def _sizes_tcp(self, msgsize, n, *args, **kwargs):
         self.sendall(bytes([MODE_SIZES, msgsize, n]))
