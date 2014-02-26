@@ -142,7 +142,8 @@ class serversocket(mysocket):
                 try:
                     commands, address = self.recvfrom(2)
                     print("connected to {}".format(address))
-                    
+                    if len(commands) != 2:
+                        continue
                     mode, msgsize = commands
 
                     if mode == MODE_ROUNDTRIP:
