@@ -180,8 +180,10 @@ class serversocket(mysocket):
         # send ACK
         self.sendto(ACK, address)
 
+        print("receiving message")
         # receive message
         msg = self.recvby(msgsize, datagram_size)
+        print("sending ACK")
         # send ACK
         self.sendto(ACK, address)
 
@@ -288,9 +290,9 @@ class clientsocket(mysocket):
 
         return elapsed_time
 
-    def _throughput_udp(self, *args, **kwargs):
+    def _throughput_udp(self, msgsize, *args, **kwargs):
         # send data in 8KB blocks
-        self.sendto(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
+        self.sendto(bytes([MODE_THROUGHPUT, msgsize, 0]), self.destination)
         try:
             # await ACK
             self.recv(1)
