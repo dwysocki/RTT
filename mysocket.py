@@ -1,3 +1,7 @@
+"""This module provides special modifications to Python's base socket.socket
+class for performance testing over TCP and UDP.
+"""
+
 import socket
 import time
 
@@ -5,8 +9,13 @@ import utils
 
 MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(3)
 NACK, ACK = b'0', b'1'
+# most efficient UDP datagram size
+datagram_size = 2**13
 
 class mysocket(socket.socket):
+    """A subclass of socket adding methods for TCP and UDP performance testing.
+    Not intended to be used by itself, but through its subclasses serversocket
+    and clientsocket."""
     def __init__(self, port=8888, udp_timeout=1.0, *args, **kwargs):
         super(mysocket, self).__init__(*args, **kwargs)
         self.port = port
@@ -28,6 +37,7 @@ class mysocket(socket.socket):
         return start_time
 
     def sendtoby(self, msg, msgsize, bufsize, recipient):
+        """Send `msg` to `recipient` in pieces of size `bufsize`"""
         if msgsize < bufsize:
             bufsize = msgsize
         bufsize += 1
@@ -65,12 +75,15 @@ class mysocket(socket.socket):
         return msg, address
 
     def is_tcp(self):
+        """Return whether or not the socket is using TCP"""
         return utils.get_bit(self.type, socket.SOCK_STREAM-1)
 
     def is_udp(self):
+        """Return whether or not the socket is using UDP"""
         return utils.get_bit(self.type, socket.SOCK_DGRAM-1)
                 
 class serversocket(mysocket):
+    """A subclass of mysocket for server-side network performance testing"""
     def __init__(self, *args, **kwargs):
         super(serversocket, self).__init__(*args, **kwargs)
         self.host = socket.gethostname()
@@ -105,6 +118,7 @@ class serversocket(mysocket):
                 self.type))
 
     def _tcp_loop(self, *args, **kwargs):
+        """Listen for client connections over TCP and react accordingly."""
         try:
             self.listen(1)
 
@@ -137,6 +151,7 @@ class serversocket(mysocket):
             self.close()
 
     def _udp_loop(self, *args, **kwargs):
+        """Listen for client connections over UDP and react accordingly."""
         try:
             while True:
                 try:
@@ -159,6 +174,8 @@ class serversocket(mysocket):
             self.close()
 
     def _roundtrip_tcp(self, client, msgsize, *args, **kwargs):
+        """Perform roundtrip performance measurements using TCP,
+        server-side."""
         msgsize = 2**msgsize
         client.send(ACK)
 
@@ -168,6 +185,8 @@ class serversocket(mysocket):
         client.sendby(msg, msgsize, msgsize)
 
     def _roundtrip_udp(self, address, msgsize, *args, **kwargs):
+        """Perform roundtrip performance measurements using UDP,
+        server-side."""
         msgsize = 2**msgsize
         # send ACK
         self.sendto(ACK, address)
@@ -180,7 +199,8 @@ class serversocket(mysocket):
             print("{} {}".format(address, to))
 
     def _throughput_tcp(self, client, msgsize, *args, **kwargs):
-        """Server-side TCP throughput method"""
+        """Perform throughput performance measurements using TCP,
+        server-side."""
         msgsize = 2**msgsize
         client.send(ACK)
         
@@ -191,9 +211,9 @@ class serversocket(mysocket):
         client.send(ACK)
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
-        """Server-side UDP throughput method"""
+        """Perform throughput performance measurements using UDP,
+        server-side."""
         msgsize = 2**msgsize
-        datagram_size = 2**13
 
         # send the client the server's timeout duration, so it can be subtracted
         # from the elapsed time
@@ -217,9 +237,11 @@ class serversocket(mysocket):
                     print("tries left: {}".format(tries_left))
 
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
+        """Perform size-number of message interaction measurements using TCP,
+        server-side."""
         msgsize = 2**msgsize
         n = 2**n
-        bufsize = int(msgsize/n)
+        bufsize = msgsize // n
 
         client.send(ACK)
 
@@ -229,6 +251,7 @@ class serversocket(mysocket):
         client.send(ACK)
 
 class clientsocket(mysocket):
+    """A subclass of mysocket for client-side network performance testing"""
     def __init__(self, host='', *args, **kwargs):
         super(clientsocket, self).__init__(*args, **kwargs)
         self.host = host
@@ -238,6 +261,8 @@ class clientsocket(mysocket):
             self.destination = (self.host, self.port)
 
     def roundtrip(self, msgsize, *args, **kwargs):
+        """Perform roundtrip performance measurements, client-side.
+        Determines whether to use TCP or UDP based on the type of the socket"""
         if self.is_tcp():
             return self._roundtrip_tcp(msgsize, *args, **kwargs)
         elif self.is_udp():
@@ -246,6 +271,8 @@ class clientsocket(mysocket):
             raise ValueError("type {} not supported".format(self.type))
 
     def throughput(self, msgsize, *args, **kwargs):
+        """Perform throughput performance measurements, client-side.
+        Determines whether to use TCP or UDP based on the type of the socket"""
         if self.is_tcp():
             return self._throughput_tcp(msgsize, *args, **kwargs)
         elif self.is_udp():
@@ -254,12 +281,16 @@ class clientsocket(mysocket):
             raise ValueError("type {} not supported".format(self.type))
 
     def sizes(self, msgsize, n, *args, **kwargs):
+        """Perform size-number of message interaction measurements, client-side.
+        Determines whether to use TCP or UDP based on the type of the socket"""
         if self.is_tcp():
             return self._sizes_tcp(msgsize, n, *args, **kwargs)
         else:
             raise ValueError("type {} not supported".format(self.type))
-    
+
     def _roundtrip_tcp(self, msgsize, *args, **kwargs):
+        """Perform roundtrip performance measurements using TCP,
+        client-side."""
         self.sendall(bytes([MODE_ROUNDTRIP, msgsize, 0]))
         if self.recv(1) is NACK:
             return
@@ -280,6 +311,8 @@ class clientsocket(mysocket):
         return elapsed_time
 
     def _roundtrip_udp(self, msgsize, *args, **kwargs):
+        """Perform roundtrip performance measurements using UDP,
+        client-side."""
         self.sendto(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
         try:
             self.recv(1)
@@ -302,6 +335,8 @@ class clientsocket(mysocket):
             return
 
     def _throughput_tcp(self, msgsize, *args, **kwargs):
+        """Perform throughput performance measurements using TCP,
+        client-side."""
         self.sendall(bytes([MODE_THROUGHPUT, msgsize, 0]))
         if self.recv(1) is NACK:
             return
@@ -320,7 +355,8 @@ class clientsocket(mysocket):
         return elapsed_time
 
     def _throughput_udp(self, msgsize, *args, **kwargs):
-        """Client-side UDP throughput method"""
+        """Perform throughput performance measurements using UDP,
+        client-side."""
         # send setup message
         self.sendto(bytes([MODE_THROUGHPUT, msgsize, 0]), self.destination)
         
@@ -332,8 +368,6 @@ class clientsocket(mysocket):
 
             timeout_multiplier = 1# msgsize * 2
             msgsize = 2**msgsize
-            # send 8KB datagrams
-            datagram_size = 2**13
             msg = utils.makebytes(msgsize)
 
             try:
@@ -361,14 +395,17 @@ class clientsocket(mysocket):
                 while tries_left > 0:
                     try:
                         self.sendto(ACK, self.destination)
-                        server_received = int(self.recv(8).decode('utf-8'))
+                        try:
+                            server_received = int(self.recv(8).decode('utf-8'))
+                        except ValueError:
+                            continue
                         print("server received: {}".format(server_received))
                         data_transmitted = client_received + server_received
                         throughput = data_transmitted / elapsed_time
                         return throughput
-                    except socket.timeout:
+                    finally:
                         tries_left -= 1
-                        print("tries left: {}".format(tries_left))
+                        print("...{}".format(tries_left), end="")
                 # tell server that we've finished receiving and want to know
                 # how much the server received
                 # self.sendto(ACK, self.destination)
@@ -386,6 +423,8 @@ class clientsocket(mysocket):
             time.sleep(1.0)
 
     def _sizes_tcp(self, msgsize, n, *args, **kwargs):
+        """Perform size-number of message interaction measurements using TCP,
+        client-side."""
         self.sendall(bytes([MODE_SIZES, msgsize, n]))
         if self.recv(1) is NACK:
             return
