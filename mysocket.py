@@ -180,8 +180,10 @@ class serversocket(mysocket):
             print("{} {}".format(address, to))
 
     def _throughput_tcp(self, client, msgsize, *args, **kwargs):
+        """Server-side TCP throughput method"""
         msgsize = 2**msgsize
         client.send(ACK)
+        
 
         # receive message
         msg = client.recvby(msgsize, msgsize)[0]
@@ -189,6 +191,7 @@ class serversocket(mysocket):
         client.send(ACK)
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
+        """Server-side UDP throughput method"""
         msgsize = 2**msgsize
         datagram_size = 2**13
 
@@ -206,7 +209,7 @@ class serversocket(mysocket):
                 try:
                     print("ACK: {}".format(self.recv(1)))
                     self.sendto(str(received).encode(), address)
-                    return
+                    return      
                 except socket.timeout:
                     tries_left -= 1
                     print("tries left: {}".format(tries_left))
@@ -315,6 +318,7 @@ class clientsocket(mysocket):
         return elapsed_time
 
     def _throughput_udp(self, msgsize, *args, **kwargs):
+        """Client-side UDP throughput method"""
         # send setup message
         self.sendto(bytes([MODE_THROUGHPUT, msgsize, 0]), self.destination)
         
@@ -345,16 +349,33 @@ class clientsocket(mysocket):
                                 server_timeout - self.timeout)
                 print("elapsed time: {}".format(elapsed_time))
                 print("client received: {}".format(client_received))
-                
+
+                ##!!##
+                ## We need to spin on the following part. The server is
+                ## spinning here, but the client needs to spin as well.
+                ## Do 10 tries
+                ##!!##
+                tries_left = 10
+                while tries_left > 0:
+                    try:
+                        self.sendto(ACK, self.destination)
+                        server_received = int(self.recv(8).decode('utf-8'))
+                        print("server received: {}".format(server_received))
+                        data_transmitted = client_received + server_received
+                        throughput = data_transmitted / elapsed_time
+                        return throughput
+                    except socket.timeout:
+                        tries_left -= 1
+                        print("tries left: {}".format(tries_left))
                 # tell server that we've finished receiving and want to know
                 # how much the server received
-                self.sendto(ACK, self.destination)
-                server_received = float(self.recv(10).decode('utf-8'))
-                print("server received: {}".format(server_received))
+                # self.sendto(ACK, self.destination)
+                # server_received = int(self.recv(8).decode('utf-8'))
+                # print("server received: {}".format(server_received))
 
-                data_transmitted = client_received + server_received
-                throughput = data_transmitted / elapsed_time
-                return throughput
+                # data_transmitted = client_received + server_received
+                # throughput = data_transmitted / elapsed_time
+                # return throughput
             finally:
                 self.settimeout(self.timeout / timeout_multiplier)
         except socket.timeout as to:
