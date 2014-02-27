@@ -204,11 +204,13 @@ class serversocket(mysocket):
         # echo message back if one was received
         if received > 0:
             self.sendtoby(msg, received, datagram_size, address)
+            # encode received to send over socket
+            received = str(received).encode()
             tries_left = 10
             while tries_left > 0:
                 try:
                     print("ACK: {}".format(self.recv(1)))
-                    self.sendto(str(received).encode(), address)
+                    self.sendto(received, address)
                     return      
                 except socket.timeout:
                     tries_left -= 1
@@ -328,7 +330,7 @@ class clientsocket(mysocket):
             server_timeout = self.recv(1)[0]
             print("server timeout: {}".format(server_timeout))
 
-            timeout_multiplier = msgsize * 2
+            timeout_multiplier = 1# msgsize * 2
             msgsize = 2**msgsize
             # send 8KB datagrams
             datagram_size = 2**13
