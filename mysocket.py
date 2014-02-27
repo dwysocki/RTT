@@ -154,7 +154,7 @@ class serversocket(mysocket):
                         self.sendto(NACK, address)
                         print("mode not implemented")
                 except socket.timeout as to:
-                    pass
+                    print(".", end="")
         finally:
             self.close()
 
@@ -189,11 +189,12 @@ class serversocket(mysocket):
         client.send(ACK)
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
-        timeout_multiplier = msgsize * 2
         msgsize = 2**msgsize
         datagram_size = 2**13
 
-        self.sendto(str(self.timeout).encode(), address)
+        # send the client the server's timeout duration, so it can be subtracted
+        # from the elapsed time
+        self.sendto(bytes([int(self.timeout)]), address)
         
         # receive message
         msg, received = self.recvby(msgsize, datagram_size)
@@ -203,11 +204,12 @@ class serversocket(mysocket):
             tries_left = 10
             while tries_left > 0:
                 try:
-                    self.recv(1)
+                    print("ACK: {}".format(self.recv(1)))
                     self.sendto(str(received).encode(), address)
                     return
                 except socket.timeout:
                     tries_left -= 1
+                    print("tries left: {}".format(tries_left))
 
     def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
         msgsize = 2**msgsize
@@ -320,9 +322,11 @@ class clientsocket(mysocket):
             # server ACKs by sending its timeout duration, which will be used
             # in the total time calculation
             server_timeout = self.recv(1)[0]
+            print("server timeout: {}".format(server_timeout))
 
-            timeout_multiplier = msgsize * 2 * 2
+            timeout_multiplier = msgsize * 2
             msgsize = 2**msgsize
+            # send 8KB datagrams
             datagram_size = 2**13
             msg = utils.makebytes(msgsize)
 
@@ -339,11 +343,14 @@ class clientsocket(mysocket):
                 end_time = time.time()
                 elapsed_time = (end_time - start_time -
                                 server_timeout - self.timeout)
-
+                print("elapsed time: {}".format(elapsed_time))
+                print("client received: {}".format(client_received))
+                
                 # tell server that we've finished receiving and want to know
                 # how much the server received
                 self.sendto(ACK, self.destination)
                 server_received = float(self.recv(10).decode('utf-8'))
+                print("server received: {}".format(server_received))
 
                 data_transmitted = client_received + server_received
                 throughput = data_transmitted / elapsed_time
