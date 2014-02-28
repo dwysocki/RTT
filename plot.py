@@ -1,4 +1,6 @@
 import numpy
+import matplotlib
+matplotlib.use("Agg") # Agg backend does not require an X server
 import matplotlib.pyplot as plt
 from os.path import join
 
