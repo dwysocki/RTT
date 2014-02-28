@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import stats
 import utils
 
-def bar_chart(data, labels,
+def bar_chart(data, labels, output,
               title='Bar Chart', xlabel='x', ylabel='y', xmul=1, ymul=1):
     """Makes a bar chart"""
     N = len(labels)
@@ -48,9 +48,9 @@ def bar_chart(data, labels,
     # place legend outside of axis
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.show()
+    plt.savefig(output, dpi=500)
 
-def box_plot(data, labels,
+def box_plot(data, labels, output,
              title='Box Plot', xlabel='x', ylabel='y', xmul=1, ymul=1):
     """Makes a box plot"""
     N = len(labels)
@@ -64,4 +64,4 @@ def box_plot(data, labels,
     ax.set_ylabel(ylabel)
     ax.set_xticklabels(list(map(lambda x: str(int(x)), xmul*labels)))
 
-    plt.show()
+    plt.savefig(output, dpi=500)
