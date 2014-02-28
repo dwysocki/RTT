@@ -28,7 +28,7 @@ if not isdir(args.output):
     parser.error('directory {} does not exist'.format(args.output))
 
 roundtrip_msgsizes = range(0, 10, 4)
-throughput_msgsizes = range(10, 22, 2)
+throughput_msgsizes = range(10, 21, 2)
 size_counts = range(8, 13)
 
 roundtrip_mode = lambda: plot.box_plot(
