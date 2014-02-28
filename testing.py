@@ -41,9 +41,9 @@ def throughput(msgsizes, type, host, port, *args, **kwargs):
     labels = numpy.fromiter((2**msgsize for msgsize in sorted(msgsizes)),
                             numpy.float)
 
-    latency = stats.mean(list(roundtrip_generator(8, 5, type, host, port)))/2
+    latency = stats.mean(list(roundtrip_generator(8, 10, type, host, port)))/2
     data = numpy.array(
-        [list(throughput_generator(msgsize, 5, latency, type, host, port))
+        [list(throughput_generator(msgsize, 10, latency, type, host, port))
          for msgsize in sorted(msgsizes)])
 
     return data, labels
@@ -79,7 +79,9 @@ def sizes_generator(count, iterations, host, port):
     for i in range(iterations):
         try:
             sock = mysocket.clientsocket(host=host, port=port)
-            yield sock.sizes(count)
+            time = sock.sizes(count)
+            if time is not None:
+                yield time
         finally:
             if sock is not None:
                 sock.close()

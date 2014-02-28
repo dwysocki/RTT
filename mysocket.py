@@ -167,7 +167,10 @@ class serversocket(mysocket):
         try:
             while True:
                 try:
-                    commands, address = self.recvfrom(2)
+                    try:
+                        commands, address = self.recvfrom(2)
+                    except Exception:
+                        continue
                     print("connected to {}".format(address))
                     if len(commands) != 2:
                         continue
@@ -255,12 +258,10 @@ class serversocket(mysocket):
         bufsize = msgsize // n
 
         # confirm ready to receive
-        print("ACKING")
         client.send(ACK)
 
         # receive message
         msg = client.recvby(msgsize, bufsize)[0]
-        print("msg received")
         # send ACK
         client.send(ACK)
 

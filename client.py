@@ -1,9 +1,12 @@
 import argparse
+from os import exists
 
 import plot
 import testing
 
 parser = argparse.ArgumentParser(description="Launch server.")
+parser.add_argument('output', metavar='OUTPUT',
+                    help='Output directory')
 parser.add_argument('mode', metavar='MODE',
                     choices=['roundtrip', 'throughput', 'sizes'],
                     help='Select mode of operation.')
@@ -15,8 +18,14 @@ parser.add_argument('host', metavar='HOST',
 parser.add_argument('port', metavar='PORT',
                     type=int,
                     help='Set port to use.')
+parser.add_argument('--client', metavar='CLIENT',
+                    default='client',
+                    help='Name of client, for use in plot titles.')
 
 args = parser.parse_args()
+
+if not exists(args.output):
+    parser.error('directory {} does not exist'.format(args.output))
 
 roundtrip_msgsizes = range(0, 10, 4)
 throughput_msgsizes = range(10, 22, 2)
@@ -24,15 +33,19 @@ size_counts = range(8, 13)
 
 if args.mode == 'roundtrip':
     plot.box_plot(*testing.roundtrip(roundtrip_msgsizes, **args.__dict__),
-                  title='Round Trip Time',
+                  output=args.output,
+                  title='Round Trip Time from {} to {}'.format(args.client, args.host),
                   xlabel='Packet Size (B)', ylabel='RTT (ms)', ymul=1000)
 elif args.mode == 'throughput':
     plot.box_plot(*testing.throughput(throughput_msgsizes, **args.__dict__),
-                  title='Throughput',
+                  output=args.output,
+                  title='Throughput from {} to {}'.format(args.client, args.host),
                   xlabel='Message Size (kB)', ylabel='throughput (kbps)',
                   xmul=2**-10, ymul=8*2**-10)
 else:
     plot.box_plot(*testing.sizes(size_counts, **args.__dict__),
-                  title='Size-Number Interaction',
+                  output=args.output,
+                  title='Size-Number Interaction from {} to {}'.format(args.client,
+                                                                       args.host),
                   xlabel='Number of messages', ylabel='throughput (kbps)',
                   ymul=8*2**-10)
