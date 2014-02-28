@@ -52,7 +52,7 @@ def throughput_generator(msgsize, iterations, type, host, port):
     while iterations > 0:
         try:
             sock = mysocket.clientsocket(type=type, host=host, port=port)
-            throughput = sock.throughput(msgsize, latency)
+            throughput = sock.throughput(msgsize)
             print(throughput)
             if throughput is not None:
                 iterations -= 1
@@ -79,6 +79,7 @@ def sizes_generator(count, iterations, host, port):
         try:
             sock = mysocket.clientsocket(host=host, port=port)
             time = sock.sizes(count)
+            print(time)
             if time is not None:
                 yield time
         finally:

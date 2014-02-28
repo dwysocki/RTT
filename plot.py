@@ -7,7 +7,8 @@ import utils
 
 def bar_chart(data, labels, output,
               title='Bar Chart', xlabel='x', ylabel='y', xmul=1, ymul=1):
-    """Makes a bar chart"""
+    """Makes a bar chart.
+    (never used)"""
     N = len(labels)
 
     # we have a generator full of tuples. if we were to make that into a
@@ -49,7 +50,7 @@ def bar_chart(data, labels, output,
     # place legend outside of axis
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.savefig(join(output, title + ".png"), dpi=500)
+    plt.savefig(join(output, title.replace(' ', '_') + ".png"), dpi=500)
 
 def box_plot(data, labels, output,
              title='Box Plot', xlabel='x', ylabel='y', xmul=1, ymul=1):
@@ -65,4 +66,4 @@ def box_plot(data, labels, output,
     ax.set_ylabel(ylabel)
     ax.set_xticklabels(list(map(lambda x: str(int(x)), xmul*labels)))
 
-    plt.savefig(join(output, title + ".png"), dpi=500)
+    plt.savefig(join(output, title.replace(' ', '_') + ".png"), dpi=500)

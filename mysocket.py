@@ -123,10 +123,8 @@ class serversocket(mysocket):
     def activate(self, *args, **kwargs):
         self.bind((self.host, self.port))
         if self.is_tcp():
-            print("TCP: {}".format(self.is_tcp()))
             return self._tcp_loop(*args, **kwargs)
         elif self.is_udp():
-            print("UDP: {}".format(self.is_udp()))
             return self._udp_loop(*args, **kwargs)
         else:
             raise ValueError("type {} serversocket not implemented".format(
@@ -289,7 +287,7 @@ class clientsocket(mysocket):
         """Perform throughput performance measurements, client-side.
         Determines whether to use TCP or UDP based on the type of the socket"""
         if self.is_tcp():
-            return self._throughput_tcp(msgsize, latency, *args, **kwargs)
+            return self._throughput_tcp(msgsize, *args, **kwargs)
         elif self.is_udp():
             return self._throughput_udp(msgsize, *args, **kwargs)
         else:

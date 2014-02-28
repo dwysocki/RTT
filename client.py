@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(description="Launch server.")
 parser.add_argument('output', metavar='OUTPUT',
                     help='Output directory')
 parser.add_argument('mode', metavar='MODE',
-                    choices=['roundtrip', 'throughput', 'sizes'],
+                    choices=['roundtrip', 'throughput', 'sizes', 'all'],
                     help='Select mode of operation.')
 parser.add_argument('type', metavar='TYPE',
                     choices=['TCP', 'UDP'],
@@ -31,21 +31,26 @@ roundtrip_msgsizes = range(0, 10, 4)
 throughput_msgsizes = range(10, 22, 2)
 size_counts = range(8, 13)
 
-if args.mode == 'roundtrip':
-    plot.box_plot(*testing.roundtrip(roundtrip_msgsizes, **args.__dict__),
-                  output=args.output,
-                  title='Round Trip Time from {} to {}'.format(args.client, args.host),
-                  xlabel='Packet Size (B)', ylabel='RTT (ms)', ymul=1000)
-elif args.mode == 'throughput':
-    plot.box_plot(*testing.throughput(throughput_msgsizes, **args.__dict__),
-                  output=args.output,
-                  title='Throughput from {} to {}'.format(args.client, args.host),
-                  xlabel='Message Size (kB)', ylabel='throughput (kbps)',
-                  xmul=2**-10, ymul=8*2**-10)
-else:
-    plot.box_plot(*testing.sizes(size_counts, **args.__dict__),
-                  output=args.output,
-                  title='Size-Number Interaction from {} to {}'.format(args.client,
-                                                                       args.host),
-                  xlabel='Number of messages', ylabel='throughput (kbps)',
-                  ymul=8*2**-10)
+roundtrip_mode = lambda: plot.box_plot(
+    *testing.roundtrip(roundtrip_msgsizes, **args.__dict__), output=args.output,
+    title='Round Trip Time from {} to {}'.format(args.client, args.host),
+    xlabel='Packet Size (B)', ylabel='RTT (ms)', ymul=1000)
+
+throughput_mode = lambda: plot.box_plot(
+    *testing.throughput(throughput_msgsizes, **args.__dict__), output=args.output,
+    title='Throughput from {} to {}'.format(args.client, args.host),
+    xlabel='Message Size (kB)', ylabel='throughput (kbps)',
+    xmul=2**-10, ymul=8*2**-10)
+
+sizes_mode = lambda: plot.box_plot(
+    *testing.sizes(size_counts, **args.__dict__), output=args.output,
+    title='Size-Number Interaction from {} to {}'.format(args.client, args.host),
+    xlabel='Number of messages', ylabel='throughput (kbps)',
+    ymul=8*2**-10)
+
+if args.mode in ['roundtrip', 'all']:
+    roundtrip_mode()
+if args.mode in ['throughput', 'all']:
+    throughput_mode()
+if args.mode in ['sizes', 'all'] and args.type is not 'UDP':
+    sizes_mode()
