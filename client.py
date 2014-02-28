@@ -33,18 +33,19 @@ size_counts = range(8, 13)
 
 roundtrip_mode = lambda: plot.box_plot(
     *testing.roundtrip(roundtrip_msgsizes, **args.__dict__), output=args.output,
-    title='Round Trip Time from {} to {}'.format(args.client, args.host),
+    title='{} Round Trip Time from {} to {}'.format(args.type, args.client, args.host),
     xlabel='Packet Size (B)', ylabel='RTT (ms)', ymul=1000)
 
 throughput_mode = lambda: plot.box_plot(
     *testing.throughput(throughput_msgsizes, **args.__dict__), output=args.output,
-    title='Throughput from {} to {}'.format(args.client, args.host),
+    title='{} Throughput from {} to {}'.format(args.type, args.client, args.host),
     xlabel='Message Size (kB)', ylabel='throughput (kbps)',
     xmul=2**-10, ymul=8*2**-10)
 
 sizes_mode = lambda: plot.box_plot(
     *testing.sizes(size_counts, **args.__dict__), output=args.output,
-    title='Size-Number Interaction from {} to {}'.format(args.client, args.host),
+    title='{} Size-Number Interaction from {} to {}'.format(
+        args.type, args.client, args.host),
     xlabel='Number of messages', ylabel='throughput (kbps)',
     ymul=8*2**-10)
 
