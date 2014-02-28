@@ -9,6 +9,7 @@ import utils
 
 # special bytes for sending messages
 ACK, NACK, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(25, 100, 15)
+ACK, NACK = map(lambda B: bytes(list(B)), (ACK, NACK))
 # most efficient UDP datagram size
 datagram_size = 2**13
 
