@@ -391,7 +391,7 @@ class clientsocket(mysocket):
 
                 end_time = time.time()
                 elapsed_time = (end_time - start_time -
-                                self.timeout if timed_out)
+                                self.timeout if timed_out else 0)
 
                 # let server know that message has been received, so that server can
                 # ACK or NACK whether or not it timed out
