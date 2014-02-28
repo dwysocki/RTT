@@ -52,7 +52,7 @@ class mysocket(socket.socket):
         """Send `msg` to `recipient` in pieces of size `bufsize`"""
         if msgsize < bufsize:
             bufsize = msgsize
-        bufsize += 1
+#        bufsize += 1
         sent = 0
 
         start_time = time.time()
