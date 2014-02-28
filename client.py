@@ -1,5 +1,5 @@
 import argparse
-from os.path import exists
+from os.path import isdir
 
 import plot
 import testing
@@ -24,7 +24,7 @@ parser.add_argument('--client', metavar='CLIENT',
 
 args = parser.parse_args()
 
-if not exists(args.output):
+if not isdir(args.output):
     parser.error('directory {} does not exist'.format(args.output))
 
 roundtrip_msgsizes = range(0, 10, 4)
