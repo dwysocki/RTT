@@ -12,7 +12,7 @@ ACK, NACK, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(25, 100, 15)
 ACK = bytes([ACK])
 NACK = bytes([NACK])
 # most efficient UDP datagram size
-datagram_size = int(2**15.5)
+datagram_size = int(2**15)
 
 def total_transferred(send_size, recv_size):
     """Estimate the total amount of data received by the client and server
@@ -141,8 +141,8 @@ class serversocket(mysocket):
 
                 try:
                     # receive 2-byte command message from client.
-                    # first byte selects the mode, the other is a mode-specific option
-                    # to be interpreted by that mode's function
+                    # first byte selects the mode, the other is a mode-specific
+                    # option to be interpreted by that mode's function
                     commands = client.recv(2)
                     mode, option = commands
 
@@ -396,8 +396,8 @@ class clientsocket(mysocket):
                 elapsed_time = (end_time - start_time -
                                 (self.timeout if timed_out else 0))
 
-                # let server know that message has been received, so that server can
-                # ACK or NACK whether or not it timed out
+                # let server know that message has been received, so that server
+                # can ACK or NACK whether or not it timed out
                 self.sendto(ACK, self.destination)
 
                 try:
