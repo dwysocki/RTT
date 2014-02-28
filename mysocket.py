@@ -7,10 +7,20 @@ import time
 
 import utils
 
-MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(3)
-NACK, ACK = b'0', b'1'
+# special bytes for sending messages
+ACK, NACK, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(25, 100, 15)
 # most efficient UDP datagram size
 datagram_size = 2**13
+
+def total_transferred(send_size, recv_size):
+    """Estimate the total amount of data received by the client and server combined,
+    assuming an equal amount was lost in each direction.
+
+    Example: If the client sends 100B, but only receives 80B, then we assume 10B were
+    lost on the way to the server, and 10B were lost on the way back to the client.
+    This means the server received 90B, making the total transfer 170B.
+    (3 * 80B + 100B) / 2 = 170B, so the math checks out."""
+    return (3 * recv_size + send_size) / 2
 
 class mysocket(socket.socket):
     """A subclass of socket adding methods for TCP and UDP performance testing.
@@ -54,14 +64,17 @@ class mysocket(socket.socket):
         """Receives an entire message in chunks of size bufsize"""
         received = 0
         msg = b''
+        timed_out = False
 
         try:
             while received < msgsize:
                 buffer = self.recv(bufsize)
                 received += len(buffer)
                 msg += buffer
+        except socket.timeout:
+            timed_out = True
         finally:
-            return msg, received
+            return msg, received, timed_out
 
     def recvfromby(self, msgsize, bufsize):
         received = 0
@@ -127,21 +140,18 @@ class serversocket(mysocket):
                 print("connected to {}".format(address))
 
                 try:
-                    # receive 3-byte command message from client.
-                    # first byte selects the mode, the other two are
-                    # mode-specific options, to be parsed by that mode's
-                    # function
-                    commands = client.recvby(3, 3)[0]
-                    mode, options = commands[0], commands[1:]
+                    # receive 2-byte command message from client.
+                    # first byte selects the mode, the other is a mode-specific option
+                    # to be interpreted by that mode's function
+                    commands = client.recv(2)
+                    mode, option = commands
 
                     if mode == MODE_ROUNDTRIP:
-                        self._roundtrip_tcp(client, options[0], *args, **kwargs)
+                        self._roundtrip_tcp(client, option, *args, **kwargs)
                     elif mode == MODE_THROUGHPUT:
-                        self._throughput_tcp(client, options[0],
-                                             *args, **kwargs)
+                        self._throughput_tcp(client, option, *args, **kwargs)
                     elif mode == MODE_SIZES:
-                        self._sizes_tcp(client, *(tuple(options) + args),
-                                        **kwargs)
+                        self._sizes_tcp(client, option, *args, **kwargs)
                     else:
                         client.send(NACK)
                         print("mode not implemented")
@@ -220,26 +230,25 @@ class serversocket(mysocket):
         self.sendto(bytes([int(self.timeout)]), address)
         
         # receive message
-        msg, received = self.recvby(msgsize, datagram_size)
+        msg, received, timed_out = self.recvby(msgsize, datagram_size)
         # echo message back if one was received
-        if received > 0:
-            self.sendtoby(msg, received, datagram_size, address)
-            # encode received to send over socket
-            received = str(received).encode()
-            tries_left = 10
-            while tries_left > 0:
-                try:
-                    print("ACK: {}".format(self.recv(1)))
-                    self.sendto(received, address)
-                    return      
-                except socket.timeout:
-                    tries_left -= 1
-                    print("tries left: {}".format(tries_left))
+        self.sendtoby(msg, received, datagram_size, address)
 
-    def _sizes_tcp(self, client, msgsize, n, *args, **kwargs):
+        # double timeout in case client times out
+        self.settimeout(2 * self.timeout)
+        
+        try:
+            # wait for client to ACK that all data was received
+            self.recv(1)
+            # tell client whether we timed out when receiving the message or not
+            self.sendto(ACK if timed_out else NACK, address)
+        finally:
+            self.settimeout(self.timeout / 2)
+
+    def _sizes_tcp(self, client, n, *args, **kwargs):
         """Perform size-number of message interaction measurements using TCP,
         server-side."""
-        msgsize = 2**msgsize
+        msgsize = 2**30
         n = 2**n
         bufsize = msgsize // n
 
@@ -291,7 +300,7 @@ class clientsocket(mysocket):
     def _roundtrip_tcp(self, msgsize, *args, **kwargs):
         """Perform roundtrip performance measurements using TCP,
         client-side."""
-        self.sendall(bytes([MODE_ROUNDTRIP, msgsize, 0]))
+        self.sendall(bytes([MODE_ROUNDTRIP, msgsize]))
         if self.recv(1) is NACK:
             return
 
@@ -313,7 +322,7 @@ class clientsocket(mysocket):
     def _roundtrip_udp(self, msgsize, *args, **kwargs):
         """Perform roundtrip performance measurements using UDP,
         client-side."""
-        self.sendto(bytes([MODE_ROUNDTRIP, msgsize, 0]), self.destination)
+        self.sendto(bytes([MODE_ROUNDTRIP, msgsize]), self.destination)
         try:
             self.recv(1)
 
@@ -337,7 +346,7 @@ class clientsocket(mysocket):
     def _throughput_tcp(self, msgsize, *args, **kwargs):
         """Perform throughput performance measurements using TCP,
         client-side."""
-        self.sendall(bytes([MODE_THROUGHPUT, msgsize, 0]))
+        self.sendall(bytes([MODE_THROUGHPUT, msgsize]))
         if self.recv(1) is NACK:
             return
 
@@ -358,7 +367,7 @@ class clientsocket(mysocket):
         """Perform throughput performance measurements using UDP,
         client-side."""
         # send setup message
-        self.sendto(bytes([MODE_THROUGHPUT, msgsize, 0]), self.destination)
+        self.sendto(bytes([MODE_THROUGHPUT, msgsize]), self.destination)
         
         try:
             # server ACKs by sending its timeout duration, which will be used
@@ -378,58 +387,42 @@ class clientsocket(mysocket):
                 self.sendtoby(msg, msgsize, datagram_size, self.destination)
                 # receive the echoed message and record how much was actually
                 # received
-                recvmsg, client_received = self.recvby(msgsize, datagram_size)
+                recvmsg, received, timed_out = self.recvby(msgsize, datagram_size)
 
                 end_time = time.time()
                 elapsed_time = (end_time - start_time -
-                                server_timeout - self.timeout)
-                print("elapsed time: {}".format(elapsed_time))
-                print("client received: {}".format(client_received))
+                                self.timeout if timed_out)
 
-                ##!!##
-                ## We need to spin on the following part. The server is
-                ## spinning here, but the client needs to spin as well.
-                ## Do 10 tries
-                ##!!##
-                tries_left = 10
-                while tries_left > 0:
-                    try:
-                        self.sendto(ACK, self.destination)
-                        try:
-                            server_received = int(self.recv(8).decode('utf-8'))
-                        except ValueError:
-                            continue
-                        print("server received: {}".format(server_received))
-                        data_transmitted = client_received + server_received
-                        throughput = data_transmitted / elapsed_time
-                        return throughput
-                    finally:
-                        tries_left -= 1
-                        print("...{}".format(tries_left), end="")
-                # tell server that we've finished receiving and want to know
-                # how much the server received
-                # self.sendto(ACK, self.destination)
-                # server_received = int(self.recv(8).decode('utf-8'))
-                # print("server received: {}".format(server_received))
+                # let server know that message has been received, so that server can
+                # ACK or NACK whether or not it timed out
+                self.sendto(ACK, self.destination)
 
-                # data_transmitted = client_received + server_received
-                # throughput = data_transmitted / elapsed_time
-                # return throughput
+                try:
+                    # await server's confirmation that its timeout was reached
+                    timed_out = self.recv(1) is ACK
+                    elapsed_time -= server_timeout if timed_out else 0
+                    total_transferred = total_transferred(msgsize, received)
+                    throughput = total_transferred / elapsed_time
+
+                    return throughput
+                except socket.timeout:
+                    # throw away this trial
+                    return
             finally:
                 self.settimeout(self.timeout / timeout_multiplier)
         except socket.timeout as to:
             print("{} {}".format(self.destination, to))
-            # give the server a chance to stop sending
+            # give the server a chance to time out
             time.sleep(1.0)
 
-    def _sizes_tcp(self, msgsize, n, *args, **kwargs):
+    def _sizes_tcp(self, n, *args, **kwargs):
         """Perform size-number of message interaction measurements using TCP,
         client-side."""
-        self.sendall(bytes([MODE_SIZES, msgsize, n]))
+        self.sendall(bytes([MODE_SIZES, n]))
         if self.recv(1) is NACK:
             return
 
-        msgsize = 2**msgsize
+        msgsize = 2**30
         n = 2**n
         msg = utils.makebytes(msgsize)
         bufsize = int(msgsize/n)
