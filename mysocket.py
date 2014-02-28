@@ -59,7 +59,7 @@ class mysocket(socket.socket):
 
         while sent < msgsize:
             sent += self.sendto(msg[sent:sent+bufsize], recipient)
-            print("sent {}".format(sent))
+#            print("sent {}".format(sent))
 
         return start_time
     
@@ -74,7 +74,7 @@ class mysocket(socket.socket):
                 buffer = self.recv(bufsize)
                 received += len(buffer)
                 msg += buffer
-                print("received: {}".format(received))
+#                print("received: {}".format(received))
         except socket.timeout:
             timed_out = True
         finally:
