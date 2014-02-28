@@ -250,10 +250,11 @@ class serversocket(mysocket):
     def _sizes_tcp(self, client, n, *args, **kwargs):
         """Perform size-number of message interaction measurements using TCP,
         server-side."""
-        msgsize = 2**30
+        msgsize = 2**20
         n = 2**n
         bufsize = msgsize // n
 
+        # confirm ready to receive
         print("ACKING")
         client.send(ACK)
 
@@ -426,14 +427,14 @@ class clientsocket(mysocket):
 #        if self.recv(1) is NACK:
 #            return
         self.recv(1)
-        
-        msgsize = 2**30
+
+        # 2^-20
+        msgsize = 2**20
         n = 2**n
         msg = utils.makebytes(msgsize)
         bufsize = int(msgsize/n)
 
         start_time = time.time()
-
         # send messages
         self.sendby(msg, msgsize, bufsize)
         # wait for ACK

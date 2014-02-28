@@ -11,7 +11,7 @@ def makebytes(n):
                      range(n)))
 
 def get_bit(number, N):
-    """Returns whether the `N`th bit from `number` is on or off."""
+    """Returns whether the `N`th bit from `number` is set."""
     return bool(number & (1 << N))
 
 type_map = {'TCP' : socket.SOCK_STREAM,

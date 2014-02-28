@@ -70,7 +70,7 @@ def sizes(counts, host, port, *args, **kwargs):
         roundtrip_generator(8, 10, socket.SOCK_STREAM, host, port)))/2
     data = numpy.array([list(sizes_generator(n, 10, host, port))
                         for n in counts]) - latency
-    data = 2**30 / data
+    data = 2**20 / data
 
     return data, labels
 
