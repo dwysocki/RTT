@@ -42,7 +42,7 @@ def throughput(msgsizes, type, host, port, *args, **kwargs):
                             numpy.float)
 
     data = numpy.array(
-        [list(throughput_generator(msgsize, 5, type, host, port))
+        [list(throughput_generator(msgsize, 2, type, host, port))
          for msgsize in sorted(msgsizes)])
 
     return data, labels
