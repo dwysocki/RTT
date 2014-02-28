@@ -380,7 +380,7 @@ class clientsocket(mysocket):
             # in the total time calculation
             server_timeout = self.recv(1)[0]
 
-            timeout_multiplier = 4
+            timeout_multiplier = 1
             msgsize = 2**msgsize
             msg = utils.makebytes(msgsize)
 
