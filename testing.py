@@ -41,14 +41,13 @@ def throughput(msgsizes, type, host, port, *args, **kwargs):
     labels = numpy.fromiter((2**msgsize for msgsize in sorted(msgsizes)),
                             numpy.float)
 
-    latency = stats.mean(list(roundtrip_generator(8, 10, type, host, port)))/2
     data = numpy.array(
-        [list(throughput_generator(msgsize, 10, latency, type, host, port))
+        [list(throughput_generator(msgsize, 10, type, host, port))
          for msgsize in sorted(msgsizes)])
 
     return data, labels
 
-def throughput_generator(msgsize, iterations, latency, type, host, port):
+def throughput_generator(msgsize, iterations, type, host, port):
     sock = None
     while iterations > 0:
         try:

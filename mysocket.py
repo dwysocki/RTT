@@ -222,8 +222,8 @@ class serversocket(mysocket):
 
         # receive message
         msg = client.recvby(msgsize, msgsize)[0]
-        # send ACK
-        client.send(ACK)
+        # echo message
+        client.sendall(msg)
 
     def _throughput_udp(self, address, msgsize, *args, **kwargs):
         """Perform throughput performance measurements using UDP,
@@ -285,7 +285,7 @@ class clientsocket(mysocket):
         else:
             raise ValueError("type {} not supported".format(self.type))
 
-    def throughput(self, msgsize, latency, *args, **kwargs):
+    def throughput(self, msgsize, *args, **kwargs):
         """Perform throughput performance measurements, client-side.
         Determines whether to use TCP or UDP based on the type of the socket"""
         if self.is_tcp():
@@ -349,7 +349,7 @@ class clientsocket(mysocket):
             time.sleep(1.0)
             return
 
-    def _throughput_tcp(self, msgsize, latency, *args, **kwargs):
+    def _throughput_tcp(self, msgsize, *args, **kwargs):
         """Perform throughput performance measurements using TCP,
         client-side."""
         self.sendall(bytes([MODE_THROUGHPUT, msgsize]))
@@ -362,12 +362,12 @@ class clientsocket(mysocket):
         start_time = time.time()
 
         self.sendall(msg)
-        self.recv(1)
+        self.recvby(msgsize, msgsize)
 
         end_time = time.time()
-        elapsed_time = end_time - start_time - latency
+        elapsed_time = end_time - start_time
 
-        return msgsize / elapsed_time
+        return 2 * msgsize / elapsed_time
 
     def _throughput_udp(self, msgsize, *args, **kwargs):
         """Perform throughput performance measurements using UDP,
