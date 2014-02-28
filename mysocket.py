@@ -379,7 +379,7 @@ class clientsocket(mysocket):
             server_timeout = self.recv(1)[0]
             print("server timeout: {}".format(server_timeout))
 
-            timeout_multiplier = 1# msgsize * 2
+            timeout_multiplier = 2
             msgsize = 2**msgsize
             msg = utils.makebytes(msgsize)
 
