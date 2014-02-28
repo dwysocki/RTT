@@ -377,7 +377,6 @@ class clientsocket(mysocket):
             # server ACKs by sending its timeout duration, which will be used
             # in the total time calculation
             server_timeout = self.recv(1)[0]
-            print("server timeout: {}".format(server_timeout))
 
             timeout_multiplier = 2
             msgsize = 2**msgsize
