@@ -1,5 +1,5 @@
 import argparse
-from os import exists
+from os.path import exists
 
 import plot
 import testing
