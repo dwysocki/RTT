@@ -42,7 +42,7 @@ def throughput(msgsizes, type, host, port, *args, **kwargs):
                             numpy.float)
 
     data = numpy.array(
-        [list(throughput_generator(msgsize, 10, type, host, port))
+        [list(throughput_generator(msgsize, 100, type, host, port))
          for msgsize in sorted(msgsizes)])
 
     return data, labels
@@ -66,8 +66,8 @@ def sizes(counts, host, port, *args, **kwargs):
     labels = numpy.fromiter((2**n for n in counts), int)
     
     latency = stats.mean(list(
-        roundtrip_generator(8, 10, socket.SOCK_STREAM, host, port)))/2
-    data = numpy.array([list(sizes_generator(n, 10, host, port))
+        roundtrip_generator(8, 100, socket.SOCK_STREAM, host, port)))/2
+    data = numpy.array([list(sizes_generator(n, 100, host, port))
                         for n in counts]) - latency
     data = 2**20 / data
 
