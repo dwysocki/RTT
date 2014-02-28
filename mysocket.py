@@ -12,7 +12,7 @@ ACK, NACK, MODE_ROUNDTRIP, MODE_THROUGHPUT, MODE_SIZES = range(25, 100, 15)
 ACK = bytes([ACK])
 NACK = bytes([NACK])
 # most efficient UDP datagram size
-datagram_size = 2**13
+datagram_size = 2**15
 
 def total_transferred(send_size, recv_size):
     """Estimate the total amount of data received by the client and server
