@@ -41,9 +41,9 @@ def throughput(msgsizes, type, host, port, *args, **kwargs):
     labels = numpy.fromiter((2**msgsize for msgsize in sorted(msgsizes)),
                             numpy.float)
 
-    latency = stats.mean(list(roundtrip_generator(8, 10, type, host, port)))/2
+    latency = stats.mean(list(roundtrip_generator(8, 5, type, host, port)))/2
     data = numpy.array(
-        [list(throughput_generator(msgsize, 10, latency, type, host, port))
+        [list(throughput_generator(msgsize, 5, latency, type, host, port))
          for msgsize in sorted(msgsizes)])
 
     return data, labels
@@ -53,33 +53,33 @@ def throughput_generator(msgsize, iterations, latency, type, host, port):
     while iterations > 0:
         try:
             sock = mysocket.clientsocket(type=type, host=host, port=port)
-            time = sock.throughput(msgsize)
-            print(time)
-            if time is not None:
+            throughput = sock.throughput(msgsize, latency)
+            print(throughput)
+            if throughput is not None:
                 iterations -= 1
-                yield msgsize / (time-latency)
+                yield throughput
         finally:
             if sock is not None:
                 sock.close()
 
-def sizes(msgsize, counts, host, port, *args, **kwargs):
+def sizes(counts, host, port, *args, **kwargs):
     counts = sorted(counts)
     labels = numpy.fromiter((2**n for n in counts), int)
     
     latency = stats.mean(list(
         roundtrip_generator(8, 10, socket.SOCK_STREAM, host, port)))/2
-    data = numpy.array([list(sizes_generator(msgsize, n, 10, host, port))
+    data = numpy.array([list(sizes_generator(n, 10, host, port))
                         for n in counts]) - latency
-    data = 2**msgsize / data
+    data = 2**30 / data
 
     return data, labels
 
-def sizes_generator(msgsize, count, iterations, host, port):
+def sizes_generator(count, iterations, host, port):
     sock = None
     for i in range(iterations):
         try:
             sock = mysocket.clientsocket(host=host, port=port)
-            yield sock.sizes(msgsize, count)
+            yield sock.sizes(count)
         finally:
             if sock is not None:
                 sock.close()

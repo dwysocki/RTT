@@ -156,7 +156,7 @@ class serversocket(mysocket):
                         self._sizes_tcp(client, option, *args, **kwargs)
                     else:
                         client.send(NACK)
-                        print("mode not implemented")
+                        print("mode {} not implemented".format(mode))
                 finally:
                     client.close()
         finally:
@@ -254,10 +254,12 @@ class serversocket(mysocket):
         n = 2**n
         bufsize = msgsize // n
 
+        print("ACKING")
         client.send(ACK)
 
         # receive message
         msg = client.recvby(msgsize, bufsize)[0]
+        print("msg received")
         # send ACK
         client.send(ACK)
 
@@ -281,21 +283,21 @@ class clientsocket(mysocket):
         else:
             raise ValueError("type {} not supported".format(self.type))
 
-    def throughput(self, msgsize, *args, **kwargs):
+    def throughput(self, msgsize, latency, *args, **kwargs):
         """Perform throughput performance measurements, client-side.
         Determines whether to use TCP or UDP based on the type of the socket"""
         if self.is_tcp():
-            return self._throughput_tcp(msgsize, *args, **kwargs)
+            return self._throughput_tcp(msgsize, latency, *args, **kwargs)
         elif self.is_udp():
             return self._throughput_udp(msgsize, *args, **kwargs)
         else:
             raise ValueError("type {} not supported".format(self.type))
 
-    def sizes(self, msgsize, n, *args, **kwargs):
+    def sizes(self, n, *args, **kwargs):
         """Perform size-number of message interaction measurements, client-side.
         Determines whether to use TCP or UDP based on the type of the socket"""
         if self.is_tcp():
-            return self._sizes_tcp(msgsize, n, *args, **kwargs)
+            return self._sizes_tcp(n, *args, **kwargs)
         else:
             raise ValueError("type {} not supported".format(self.type))
 
@@ -345,7 +347,7 @@ class clientsocket(mysocket):
             time.sleep(1.0)
             return
 
-    def _throughput_tcp(self, msgsize, *args, **kwargs):
+    def _throughput_tcp(self, msgsize, latency, *args, **kwargs):
         """Perform throughput performance measurements using TCP,
         client-side."""
         self.sendall(bytes([MODE_THROUGHPUT, msgsize]))
@@ -361,9 +363,9 @@ class clientsocket(mysocket):
         self.recv(1)
 
         end_time = time.time()
-        elapsed_time = end_time - start_time
+        elapsed_time = end_time - start_time - latency
 
-        return elapsed_time
+        return msgsize / elapsed_time
 
     def _throughput_udp(self, msgsize, *args, **kwargs):
         """Perform throughput performance measurements using UDP,
@@ -393,7 +395,7 @@ class clientsocket(mysocket):
 
                 end_time = time.time()
                 elapsed_time = (end_time - start_time -
-                                self.timeout if timed_out else 0)
+                                (self.timeout if timed_out else 0))
 
                 # let server know that message has been received, so that server can
                 # ACK or NACK whether or not it timed out
@@ -403,8 +405,8 @@ class clientsocket(mysocket):
                     # await server's confirmation that its timeout was reached
                     timed_out = self.recv(1) is ACK
                     elapsed_time -= server_timeout if timed_out else 0
-                    total_transferred = total_transferred(msgsize, received)
-                    throughput = total_transferred / elapsed_time
+                    data_transferred = total_transferred(msgsize, received)
+                    throughput = data_transferred / elapsed_time
 
                     return throughput
                 except socket.timeout:
@@ -421,9 +423,10 @@ class clientsocket(mysocket):
         """Perform size-number of message interaction measurements using TCP,
         client-side."""
         self.sendall(bytes([MODE_SIZES, n]))
-        if self.recv(1) is NACK:
-            return
-
+#        if self.recv(1) is NACK:
+#            return
+        self.recv(1)
+        
         msgsize = 2**30
         n = 2**n
         msg = utils.makebytes(msgsize)
