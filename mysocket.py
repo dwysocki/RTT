@@ -15,12 +15,12 @@ NACK = bytes([NACK])
 datagram_size = 2**13
 
 def total_transferred(send_size, recv_size):
-    """Estimate the total amount of data received by the client and server combined,
-    assuming an equal amount was lost in each direction.
+    """Estimate the total amount of data received by the client and server
+    combined, assuming an equal amount was lost in each direction.
 
-    Example: If the client sends 100B, but only receives 80B, then we assume 10B were
-    lost on the way to the server, and 10B were lost on the way back to the client.
-    This means the server received 90B, making the total transfer 170B.
+    Example: If the client sends 100B, but only receives 80B, then we assume 10B
+    were lost on the way to the server, and 10B were lost on the way back to the
+    client. This means the server received 90B, making the total transfer 170B.
     (3 * 80B + 100B) / 2 = 170B, so the math checks out."""
     return (3 * recv_size + send_size) / 2
 
