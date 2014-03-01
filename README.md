@@ -21,12 +21,36 @@ Usage
 =====
 
 client side
-
+```
     python client.py [-h] [--client CLIENT] OUTPUT MODE TYPE HOST PORT
+    
+    Launch server.
+
+    positional arguments:
+      OUTPUT           Output directory
+      MODE             Select mode of operation.
+      TYPE             Choose between TCP or UDP for transmissions.
+      HOST             Set host to connect to.
+      PORT             Set port to use.
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --client CLIENT  Name of client, for use in plot titles.
+```
 
 server side
-
+```
     python server.py [-h] TYPE PORT
+    
+    Launch server.
+
+    positional arguments:
+      TYPE        Choose between TCP or UDP for transmissions.
+      PORT        Set port to use.
+
+    optional arguments:
+      -h, --help  show this help message and exit
+```
 
 
 Example
@@ -75,17 +99,4 @@ the client, and the elapsed time divided by 1MiB is recorded.
 
 The result of each of these tests is output to `outdir` as a box-and-whisker
 plot. A sample of these plots, run between several Oswego servers and my
-laptop over wifi, are hosted
-[here](http://cs.oswego.edu/~dwysocki/445_1/NetworkingAssignment1.html).
-
-
-Author
-======
-
-Dan Wysocki (Feb 2014)
-
-
-License
-=======
-
-GNU General Public License version 3
+laptop over
