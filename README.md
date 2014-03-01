@@ -82,7 +82,7 @@ laptop over wifi, are hosted
 Author
 ======
 
-Dan Wysocki
+Dan Wysocki (Feb 2014)
 
 
 License
