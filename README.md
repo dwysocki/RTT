@@ -58,7 +58,7 @@ optional arguments:
 Example
 =======
 
-First run from server `name@example.com`
+First run from server `name.host@example.com`
 
 ```
 python server.py TCP 8888
@@ -67,7 +67,7 @@ python server.py TCP 8888
 Then run from client
 
 ```
-python client.py outdir all TCP 8888 name@example.com
+python client.py outdir all TCP 8888 name.host@example.com
 ```
 
 
