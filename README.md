@@ -21,17 +21,18 @@ Usage
 =====
 
 client side
-```
-    python client.py [-h] [--client CLIENT] OUTPUT MODE TYPE HOST PORT
-    
-    Launch server.
 
-    positional arguments:
-      OUTPUT           Output directory
-      MODE             Select mode of operation.
-      TYPE             Choose between TCP or UDP for transmissions.
-      HOST             Set host to connect to.
-      PORT             Set port to use.
+```
+python client.py [-h] [--client CLIENT] OUTPUT MODE TYPE HOST PORT
+
+Launch server.
+
+positional arguments:
+  OUTPUT           Output directory
+  MODE             Select mode of operation.
+  TYPE             Choose between TCP or UDP for transmissions.
+  HOST             Set host to connect to.
+  PORT             Set port to use.
 
 optional arguments:
   -h, --help       show this help message and exit
@@ -39,17 +40,18 @@ optional arguments:
 ```
 
 server side
+
 ```
-    python server.py [-h] TYPE PORT
-    
-    Launch server.
+python server.py [-h] TYPE PORT
 
-    positional arguments:
-      TYPE        Choose between TCP or UDP for transmissions.
-      PORT        Set port to use.
+Launch server.
 
-    optional arguments:
-      -h, --help  show this help message and exit
+positional arguments:
+  TYPE        Choose between TCP or UDP for transmissions.
+  PORT        Set port to use.
+
+optional arguments:
+  -h, --help  show this help message and exit
 ```
 
 
@@ -58,11 +60,15 @@ Example
 
 First run from server `name@example.com`
 
-    python server.py TCP 8888
+```
+python server.py TCP 8888
+```
 
 Then run from client
 
-    python client.py outdir all TCP 8888 name@example.com
+```
+python client.py outdir all TCP 8888 name@example.com
+```
 
 
 Description
