@@ -9,12 +9,12 @@ Requirements
 ============
 
 client side
-  - Python 3.3 or higher (will probably work on earlier releases as well)
+  - Python 3.3+
   - numpy
   - matplotlib
 
 server side
-  - Python 3.3 or higher
+  - Python 3.3+
 
 
 Usage
@@ -79,9 +79,13 @@ laptop over wifi, are hosted
 [here](http://cs.oswego.edu/~dwysocki/445_1/NetworkingAssignment1.html).
 
 
+Author
+======
+
+Dan Wysocki
+
+
 License
 =======
-
-Copyright © Dan Wysocki
 
 GNU General Public License version 3
