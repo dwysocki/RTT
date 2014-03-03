@@ -38,7 +38,7 @@ class mysocket(socket.socket):
         """Sends an entire message in chunks of size bufsize"""
         if msgsize < bufsize:
             bufsize = msgsize
-        bufsize += 1 # account for string slicing being end-exclusive
+#        bufsize += 1 # account for string slicing being end-exclusive
         sent = 0
 
         start_time = time.time()
