@@ -9,12 +9,12 @@ Requirements
 ============
 
 client side
-  - Python 3.3 or higher (will probably work on earlier releases as well)
+  - Python 3.3+
   - numpy
   - matplotlib
 
 server side
-  - Python 3.3 or higher
+  - Python 3.3+
 
 
 Usage
@@ -22,23 +22,53 @@ Usage
 
 client side
 
-    python client.py [-h] [--client CLIENT] OUTPUT MODE TYPE HOST PORT
+```
+python client.py [-h] [--client CLIENT] OUTPUT MODE TYPE HOST PORT
+
+Launch server.
+
+positional arguments:
+  OUTPUT           Output directory
+  MODE             Select mode of operation.
+  TYPE             Choose between TCP or UDP for transmissions.
+  HOST             Set host to connect to.
+  PORT             Set port to use.
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --client CLIENT  Name of client, for use in plot titles.
+```
 
 server side
 
-    python server.py [-h] TYPE PORT
+```
+python server.py [-h] TYPE PORT
+
+Launch server.
+
+positional arguments:
+  TYPE        Choose between TCP or UDP for transmissions.
+  PORT        Set port to use.
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
 
 
 Example
 =======
 
-First run from server `name@example.com`
+First run from server `name.host@example.com`
 
-    python server.py TCP 8888
+```
+python server.py TCP 8888
+```
 
 Then run from client
 
-    python client.py outdir all TCP 8888 name@example.com
+```
+python client.py outdir all TCP 8888 name.host@example.com
+```
 
 
 Description
@@ -75,13 +105,4 @@ the client, and the elapsed time divided by 1MiB is recorded.
 
 The result of each of these tests is output to `outdir` as a box-and-whisker
 plot. A sample of these plots, run between several Oswego servers and my
-laptop over wifi, are hosted
-[here](http://cs.oswego.edu/~dwysocki/445_1/NetworkingAssignment1.html).
-
-
-License
-=======
-
-Copyright © Dan Wysocki
-
-GNU General Public License version 3
+laptop over wifi, are in the results/ folder, and hosted [here](http://cs.oswego.edu/~dwysocki/445_1/NetworkingAssignment1.html).
