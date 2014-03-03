@@ -105,4 +105,4 @@ the client, and the elapsed time divided by 1MiB is recorded.
 
 The result of each of these tests is output to `outdir` as a box-and-whisker
 plot. A sample of these plots, run between several Oswego servers and my
-laptop over
+laptop over wifi, are in the results/ folder, and hosted [here](http://cs.oswego.edu/~dwysocki/445_1/NetworkingAssignment1.html).
