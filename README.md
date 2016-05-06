@@ -67,7 +67,7 @@ python server.py TCP 8888
 Then run from client
 
 ```
-python client.py outdir all TCP 8888 name.host@example.com
+python client.py outdir all TCP name.host@example.com 8888
 ```
 
 
